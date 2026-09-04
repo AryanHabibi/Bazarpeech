@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XAU/USD — Long Setup</title>
+<meta name="description" content="Spot gold, live-rendered: candles form, a long position is armed, and the target is reached.">
+<meta name="theme-color" content="#0b0a09">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BazarPeech">
+<meta property="og:title" content="XAU/USD — BazarPeech">
+<meta property="og:description" content="Spot gold, live-rendered: candles form, a long position is armed, and the target is reached.">
+<meta property="og:url" content="https://bazarpeech.com/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0a09'/%3E%3Cg stroke='%23e4be7d' stroke-width='2.4'%3E%3Cpath d='M11.5 7v18'/%3E%3Cpath d='M11.5 11.5v9.5' stroke-width='6.5'/%3E%3C/g%3E%3Cg stroke='%23e9e5dd' stroke-width='2.4' fill='none'%3E%3Cpath d='M21.5 9v16'/%3E%3Crect x='18.6' y='13.5' width='5.8' height='7.5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#0b0a09;            /* warm near-black, not the usual blue-black */
+    --page:#070606;
+    --hairline:rgba(255,255,255,.055);
+    --text:#efeae1;
+    --dim:#6e675e;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; padding:clamp(16px,4vw,40px); background:var(--page); color:var(--text);
+    font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex; align-items:center; justify-content:center;
+  }
+  /* The widget sizes itself to THIS container — swap it for any parent you like. */
+  #stage{
+    position:relative; width:min(1180px,100%); aspect-ratio:16/9; min-height:300px;
+    background:var(--bg); border-radius:18px; overflow:hidden;
+    /* hairline, a soft top-edge highlight, and a long low shadow to lift it */
+    box-shadow:
+      0 0 0 1px var(--hairline),
+      inset 0 1px 0 rgba(255,255,255,.045),
+      0 50px 110px -50px rgba(0,0,0,.95);
+  }
+  #stage canvas{display:block; width:100%; height:100%; cursor:pointer}
+  #hint{
+    position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+    font-size:9px; letter-spacing:.26em; text-transform:uppercase; color:#4a443d;
+    pointer-events:none; transition:opacity .6s ease;
+  }
+  @media (prefers-reduced-motion:reduce){ #hint{display:none} }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="chart"></canvas>
+  <div id="hint">click to replay · space to pause</div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================================
+   CONFIG — every tunable in one place
+   ========================================================================== */
+const CFG = {
+  symbol: "XAU/USD",
+  market: "SPOT GOLD",
+
+  /* Two-tone identity: gold carries the position and every winning move,
+     pearl-white carries counter-moves and risk. Stored as rgb tuples so any
+     alpha can be composed from one source of truth. */
+  rgb: {
+    gold:     "228,190,125",
+    goldDeep: "154,118,58",
+    pearl:    "233,229,221",
+    pearlDim: "125,119,110",
+    text:     "239,234,225",
+    dim:      "110,103,94",
+    plate:    "13,12,11",
+  },
+  color: { bg: "#0b0a09" },
+
+  candle: { bodyRatio: 0.62, maxBody: 26, minBody: 1, wick: 1.2, formMs: 165 },
+
+  /* Phase durations in seconds — the whole sequence runs ~21s */
+  timing: {
+    intro:      0.40,
+    genRate:    17,     // candles revealed per second in phase 1
+    genLead:    24,     // how many candles phase 1 plays out live
+    genEase:    7,      // candles over which generation decelerates into the signal
+    pause:      0.18,   // beat before the position tool draws in
+    overlayIn:  0.50,
+    setupHold:  0.15,   // barely a beat — price moves as soon as the box lands
+    runRate:    4.4,    // candles per second during the push to target
+    runEase:    2.2,    // candles over which the push eases into the target
+    flash:      0.95,
+    hold:       1.00,
+    zoom:       2.30,
+    macro:      3.40,
+    rewind:     1.45,   // macro view flies back to the start of the next pass
+  },
+
+  /* Camera. `liveSpan` = candles across the viewport (smaller = more zoomed in).
+     `settle` is the price-range deadzone that stops the chart twitching as
+     candles scroll out of the window. */
+  cam: {
+    liveSpan: 34, anchor: 0.54, pricePad: 0.30, ease: 4.2, settle: 0.03,
+    macroSpan: 240,          // candles across in the zoomed-out view
+  },
+
+  layout: { padT: 44, padB: 26, padL: 26, padR: 26 },
+
+  /* `path` is the leg after entry, as fractions of the entry→target distance:
+     negative = trading against the position. It opens with a bearish retrace
+     that threatens the stop, then breaks out. Last value must be 1 (= target).
+     Kept above -0.42 so the retrace never actually reaches the stop. */
+  trade: {
+    count: 11, rr: 2.4, riskPct: 0.019,
+    path: [-0.13, -0.24, 0.07, 0.33, 0.21, 0.61, 1.0],
+    /* A losing leg. Same fraction space; the final push to the stop is
+       appended at runtime (it sits at -1/rr). */
+    lossPath: [0.20, 0.07, 0.34, 0.13, -0.09, -0.27],
+    losers: [7, 10],         // which historic trades get stopped out
+    retraceFloor: -0.33,
+  },
+};
+
+/* ============================================================================
+   MATH / UTIL
+   ========================================================================== */
+const clamp = (v,a,b)=>v<a?a:v>b?b:v;
+/* every colour in the render comes through here, from CFG.rgb */
+const rgba = (tuple,a)=>`rgba(${tuple},${a})`;
+const T = () => CFG.rgb;
+const lerp  = (a,b,t)=>a+(b-a)*t;
+const easeInOutCubic = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2;
+const easeOutCubic   = t => 1-Math.pow(1-t,3);
+const easeOutBack    = t => { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); };
+/* frame-rate independent exponential smoothing */
+const smooth = (cur,target,k,dt)=>cur+(target-cur)*(1-Math.exp(-k*dt));
+
+function makeRng(seed){
+  let s = seed>>>0;
+  return function(){ s^=s<<13; s>>>=0; s^=s>>17; s^=s<<5; s>>>=0; return s/4294967296; };
+}
+
+/* ============================================================================
+   DATASET — a full history seeded with completed setups, ending on the
+   featured long trade that the animation plays out live.
+   ========================================================================== */
+function buildDataset(seed){
+  const rng = makeRng(seed);
+  const candles = [];
+  const trades  = [];
+  let price = 100;
+
+  const vol = () => price * 0.0062;
+
+  function pushNoise(n, drift){
+    for(let k=0;k<n;k++){
+      const o = price;
+      const v = vol();
+      const d = drift + (100 - price) * 0.0006;          // gentle mean reversion
+      const body = (rng()-0.5 + d) * v * 2.3;
+      const c = o + body;
+      const h = Math.max(o,c) + rng()*v*0.9;
+      const l = Math.min(o,c) - rng()*v*0.9;
+      candles.push({o,h,l,c});
+      price = c;
+    }
+  }
+
+  /* One trade = a signal candle, then `push` candles running to target. */
+  function pushTrade(dir, won){
+    const v = vol();
+
+    // Energetic signal candle in the trade's direction
+    const o = price;
+    const c = dir==="long" ? o + v*2.1 : o - v*2.1;
+    candles.push({ o, c, h:Math.max(o,c)+v*0.45, l:Math.min(o,c)-v*0.45 });
+    price = c;
+
+    const entryIndex = candles.length - 1;
+    const entry = c;
+    const risk  = entry * CFG.trade.riskPct;
+    const tp    = dir==="long" ? entry + risk*CFG.trade.rr : entry - risk*CFG.trade.rr;
+    const sl    = dir==="long" ? entry - risk              : entry + risk;
+
+    /* Impulse leg. Everything is computed as a fraction of the entry→target
+       distance, so longs and shorts mirror automatically: f=0 is entry, f=1 is
+       target, f<0 is drawdown. `total` carries the sign. */
+    const total = tp - entry;
+    const fStop = -1/CFG.trade.rr;                       // the stop, in fraction space
+    const seq   = won ? CFG.trade.path
+                      : CFG.trade.lossPath.concat([fStop]);
+    const floor = won ? CFG.trade.retraceFloor : fStop + 0.05;
+    const at    = f => entry + total*f;
+    let fPrev = 0;
+
+    for(let k=0;k<seq.length;k++){
+      const last = k === seq.length-1;
+      const jitter = last ? 0 : (rng()-0.5)*0.07;
+      const fc = last ? (won ? 1 : fStop)
+                      : clamp(seq[k]+jitter, floor, won ? 0.94 : 0.78);
+      const fo = fPrev;
+
+      const over = 0.05 + rng()*0.06;                    // wick overshoot
+      let fh = Math.max(fo,fc) + over;
+      let fl = Math.min(fo,fc) - over*(fc<fo ? 1.4 : 0.7);   // longer wicks on rejection
+      fl = Math.max(fl, floor - 0.04);
+      if(!won) fh = Math.min(fh, 0.86);                      // a loser never tags target
+      if(last && won)  fh = Math.max(fh, 1.012);             // tag the target
+      if(last && !won) fl = Math.min(fl, fStop - 0.03);      // tag the stop
+
+      const a = at(fh), b = at(fl);
+      candles.push({ o:at(fo), c:at(fc), h:Math.max(a,b), l:Math.min(a,b) });
+      fPrev = fc;
+      price = at(fc);
+    }
+    trades.push({ dir, won, entry, tp, sl, entryIndex, exitIndex: candles.length-1, rr: CFG.trade.rr });
+  }
+
+  pushNoise(26, 0.04);
+  for(let t=0;t<CFG.trade.count;t++){
+    const dir = rng() > 0.34 ? "long" : "short";
+    const won = CFG.trade.losers.indexOf(t) === -1;
+    pushNoise(18 + Math.floor(rng()*13), (rng()-0.45)*0.22);
+    pushTrade(dir, won);
+    pushNoise(6 + Math.floor(rng()*6), dir==="long" ? -0.12 : 0.12);   // pullback after
+  }
+  pushNoise(20, 0.05);
+  pushTrade("long", true);                               // ← the featured setup
+
+  return { candles, trades, featured: trades[trades.length-1] };
+}
+
+/* ============================================================================
+   STATE
+   ========================================================================== */
+const stage  = document.getElementById("stage");
+const canvas = document.getElementById("chart");
+const hint   = document.getElementById("hint");
+const ctx    = canvas.getContext("2d", { alpha:false });
+
+let W=0, H=0, DPR=1;
+let plot = {x:0,y:0,w:0,h:0};
+
+const DATA = buildDataset(20260904);
+
+let S = null;              // running state
+let paused = false;
+let lastTs = 0;
+
+/* Camera: centre index `i`, horizontal `span` (candles across), centre price
+   `p`, vertical `pspan` (price units across). Targets are eased toward. */
+const cam  = {i:0, span:CFG.cam.liveSpan, p:100, pspan:10};
+const camT = {i:0, span:CFG.cam.liveSpan, p:100, pspan:10};
+let held = null;           // deadzoned price range, see targetRange()
+
+const startIndex = () =>
+  Math.max(0, DATA.featured.entryIndex - CFG.timing.genLead);
+
+/* Where the live view begins each pass — also the target the rewind flies to. */
+function startCamera(){
+  const span = CFG.cam.liveSpan;
+  const i = (startIndex()-1) - span*(CFG.cam.anchor-0.5);
+  const r = priceRange(i-span/2, i+span/2, null);
+  return { i, span, p:(r.min+r.max)/2, pspan:r.max-r.min };
+}
+
+/* `continuous` restarts the cycle without a fade or a camera jump: the rewind
+   has already flown the camera to the start position, so the next pass just
+   picks up from there. */
+function resetRun(continuous){
+  const start = startIndex();
+  S = {
+    phase: continuous ? "GEN" : "INTRO", t:0,
+    revealed: start,             // fractional: how many candles exist on screen
+    formed: start,               // highest index already given a forming animation
+    appear: new Map(),           // index -> forming progress 0..1
+    overlay: 0,                  // position tool draw-in 0..1
+    flash: 0,
+    badge: 0,
+    macroReveal: 0,
+    marks: 0,                    // tick/cross reveal, runs after the zoom lands
+    fade: continuous ? 1 : 0,
+    zoomFrom: null,
+    rewindFrom: null,
+  };
+  held = null;
+  if(!continuous){
+    const c0 = startCamera();
+    cam.i = camT.i = c0.i;  cam.span  = camT.span  = c0.span;
+    cam.p = camT.p = c0.p;  cam.pspan = camT.pspan = c0.pspan;
+  }
+}
+
+/* ============================================================================
+   SIZING — responsive + retina
+   ========================================================================== */
+function resize(){
+  const r = stage.getBoundingClientRect();
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = Math.max(320, r.width); H = Math.max(220, r.height);
+  canvas.width  = Math.round(W*DPR);
+  canvas.height = Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const L = CFG.layout;
+  plot = { x:L.padL, y:L.padT, w:W - L.padL - L.padR, h:H - L.padT - L.padB };
+  // changing the backing store clears it — repaint immediately if the loop is idle
+  if(paused && S) draw();
+}
+new ResizeObserver(resize).observe(stage);
+
+/* ============================================================================
+   PROJECTION — deliberately sub-pixel. Snapping candle geometry to whole
+   pixels while the camera pans by fractions of a pixel is what makes candles
+   appear to twitch, so nothing here is rounded.
+   ========================================================================== */
+const cw = () => plot.w / cam.span;                            // px per candle slot
+const X  = i => plot.x + plot.w/2 + (i - cam.i) * cw();
+const Y  = p => plot.y + plot.h/2 - (p - cam.p) * (plot.h / cam.pspan);
+
+function priceRange(a, b, extra){
+  a = clamp(Math.floor(a), 0, DATA.candles.length-1);
+  b = clamp(Math.ceil(b),  0, DATA.candles.length-1);
+  let min = Infinity, max = -Infinity;
+  for(let i=a;i<=b;i++){ const c=DATA.candles[i]; if(c.l<min)min=c.l; if(c.h>max)max=c.h; }
+  if(extra) for(const v of extra){ if(v<min)min=v; if(v>max)max=v; }
+  if(!isFinite(min)){ min=95; max=105; }
+  const pad = (max-min)*CFG.cam.pricePad + 0.0001;
+  return { min:min-pad, max:max+pad };
+}
+
+/* The visible min/max steps discontinuously every time a candle enters or
+   leaves the window. Holding the previous range until the change exceeds a
+   deadzone keeps the vertical scale still instead of nudging every frame. */
+function targetRange(a, b, extra){
+  const r = priceRange(a, b, extra);
+  if(held){
+    const s = r.max - r.min;
+    if(Math.abs(r.min-held.min) < s*CFG.cam.settle &&
+       Math.abs(r.max-held.max) < s*CFG.cam.settle) return held;
+  }
+  held = r;
+  return r;
+}
+
+/* ============================================================================
+   UPDATE — phase machine
+   ========================================================================== */
+function update(dt){
+  const T = CFG.timing, f = DATA.featured;
+  S.t += dt;
+
+  switch(S.phase){
+    case "INTRO":
+      S.fade = clamp(S.t / T.intro, 0, 1);
+      if(S.t >= T.intro) go("GEN");
+      break;
+
+    case "GEN": {
+      S.fade = 1;
+      const target = f.entryIndex + 1;
+      // decelerate into the signal candle rather than stopping dead on it
+      const ease = clamp((target - S.revealed)/T.genEase, 0.3, 1);
+      S.revealed = Math.min(target, S.revealed + T.genRate*ease*dt);
+      if(S.revealed >= target) go("PAUSE");
+      break;
+    }
+
+    case "PAUSE":
+      if(S.t >= T.pause) go("SETUP");
+      break;
+
+    case "SETUP":
+      S.overlay = clamp(S.t / T.overlayIn, 0, 1);
+      if(S.t >= T.overlayIn + T.setupHold) go("RUN");
+      break;
+
+    case "RUN": {
+      S.overlay = 1;
+      const target = f.exitIndex + 1;
+      const ease = clamp((target - S.revealed)/T.runEase, 0.42, 1);
+      S.revealed = Math.min(target, S.revealed + T.runRate*ease*dt);
+      if(tpTouched() || (S.revealed >= target && S.t > 1.0)) go("HIT");
+      break;
+    }
+
+    case "HIT":
+      S.overlay = 1;
+      S.revealed = f.exitIndex + 1;
+      S.flash = clamp(S.t / T.flash, 0, 1);
+      S.badge = clamp(S.t / 0.65, 0, 1);
+      if(S.t >= T.flash) go("HOLD");
+      break;
+
+    case "HOLD":
+      S.flash = 1; S.badge = 1;
+      // bring the rest of the session's setups in while the view is still
+      // close, so the zoom-out reveals markers that are already there
+      S.macroReveal = clamp(S.t / (T.hold*0.62), 0, 1);
+      if(S.t >= T.hold){ S.zoomFrom = {...cam}; go("ZOOM"); }
+      break;
+
+    case "ZOOM": {
+      const t = clamp(S.t / T.zoom, 0, 1), e = easeInOutCubic(t);
+      const m = macroCamera();
+      cam.i     = lerp(S.zoomFrom.i, m.i, e);
+      cam.p     = lerp(S.zoomFrom.p, m.p, e);
+      // logarithmic interpolation keeps the zoom rate perceptually even
+      cam.span  = Math.exp(lerp(Math.log(S.zoomFrom.span),  Math.log(m.span),  e));
+      cam.pspan = Math.exp(lerp(Math.log(S.zoomFrom.pspan), Math.log(m.pspan), e));
+      camT.i=cam.i; camT.p=cam.p; camT.span=cam.span; camT.pspan=cam.pspan;
+      S.macroReveal = 1;                       // already revealed during HOLD
+      if(t>=1) go("MACRO");
+      return;                       // skip the live camera solver below
+    }
+
+    case "MACRO":
+      S.macroReveal = 1;
+      S.marks = clamp((S.t - 0.18) / 1.05, 0, 1);   // ticks and crosses pop in
+      if(S.t >= T.macro){
+        S.rewindFrom = {...cam, revealed:S.revealed};
+        go("REWIND");
+      }
+      break;
+
+    /* Seamless restart: instead of fading to black and cutting, the camera
+       flies back in to exactly where the next pass begins while the candles
+       retract behind it and the session overlays fade out. */
+    case "REWIND": {
+      const t = clamp(S.t / T.rewind, 0, 1), e = easeInOutCubic(t);
+      const a = S.rewindFrom, b = startCamera();
+      cam.i     = lerp(a.i, b.i, e);
+      cam.p     = lerp(a.p, b.p, e);
+      cam.span  = Math.exp(lerp(Math.log(a.span),  Math.log(b.span),  e));
+      cam.pspan = Math.exp(lerp(Math.log(a.pspan), Math.log(b.pspan), e));
+      camT.i=cam.i; camT.p=cam.p; camT.span=cam.span; camT.pspan=cam.pspan;
+
+      S.revealed    = lerp(a.revealed, startIndex(), e);
+      S.macroReveal = 1 - e;
+      S.marks       = clamp(1 - e*1.8, 0, 1);
+      S.overlay     = clamp(1 - e*2.2, 0, 1);
+      if(t>=1) resetRun(true);
+      return;
+    }
+  }
+
+  /* --- candle forming animation ---
+     `formed` is a high-water mark: a candle is registered the first time it is
+     revealed and never again, otherwise finished entries get re-added and the
+     newest candles replay their grow animation every few frames. */
+  const shown = Math.floor(S.revealed);
+  while(S.formed < shown){ S.appear.set(S.formed, 0); S.formed++; }
+  for(const [i,v] of S.appear){
+    const nv = v + dt*1000/CFG.candle.formMs;
+    if(nv>=1) S.appear.delete(i); else S.appear.set(i,nv);
+  }
+
+  /* --- live camera targets ---
+     The wide phases drive the camera themselves. REWIND must be excluded here
+     too: the phase that hands off to it falls through to this block, and one
+     frame of live solving before the rewind starts is a visible jerk. */
+  if(S.phase!=="MACRO" && S.phase!=="ZOOM" && S.phase!=="REWIND"){
+    const head = S.revealed - 1;
+    camT.span = CFG.cam.liveSpan;
+    camT.i    = head - camT.span*(CFG.cam.anchor-0.5);
+    const extra = (S.overlay>0) ? [f.tp, f.sl] : null;
+    const r = targetRange(camT.i - camT.span/2, camT.i + camT.span/2, extra);
+    camT.p     = (r.min+r.max)/2;
+    camT.pspan = r.max-r.min;
+
+    const k = CFG.cam.ease;
+    cam.i     = smooth(cam.i,     camT.i,     k*2.2, dt);   // pan tracks tightly
+    cam.p     = smooth(cam.p,     camT.p,     k,     dt);   // scale settles slowly
+    cam.span  = smooth(cam.span,  camT.span,  k,     dt);
+    cam.pspan = smooth(cam.pspan, camT.pspan, k,     dt);
+  }
+}
+
+function go(p){ S.phase = p; S.t = 0; }
+
+function tpTouched(){
+  const f = DATA.featured;
+  const i = Math.floor(S.revealed) - 1;
+  if(i < f.entryIndex+1) return false;
+  const c = DATA.candles[i]; if(!c) return false;
+  const g = S.appear.has(i) ? S.appear.get(i) : 1;
+  return lerp(c.o, c.h, easeOutCubic(g)) >= f.tp;
+}
+
+function macroCamera(){
+  const n = DATA.candles.length, last = n-1;
+  const span = Math.min(n*1.06, CFG.cam.macroSpan);
+  const i = last - span/2 + span*0.07;                   // leave a little air on the right
+  const r = priceRange(i - span/2, i + span/2, null);
+  return { i, span, p:(r.min+r.max)/2, pspan:(r.max-r.min)*1.02 };
+}
+
+/* ============================================================================
+   DRAW — no grid, no axes, no readouts: candles and the position tool only.
+   ========================================================================== */
+function draw(){
+  ctx.fillStyle = CFG.color.bg;
+  ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.globalAlpha = S.fade;
+
+  drawHistoricTrades();
+  drawCandles();
+  // the detailed tool dissolves early in the zoom while the compact historic
+  // marker takes over underneath, so the handover isn't a visible pop
+  const toolFade = S.phase==="ZOOM" ? clamp(1 - S.t/0.6, 0, 1)
+                 : (S.phase==="MACRO"||S.phase==="REWIND") ? 0 : 1;
+  if(S.overlay > 0 && toolFade > 0) drawPositionTool(DATA.featured, S.overlay, toolFade);
+
+  if(S.marks > 0) drawResultMarks();
+
+  const afterglow = S.phase==="ZOOM" ? clamp(1 - S.t/0.55, 0, 1)
+                  : (S.phase==="MACRO"||S.phase==="REWIND") ? 0 : 1;
+  if(S.flash > 0 && afterglow > 0) drawFlash(afterglow);
+  if(S.badge > 0 && afterglow > 0) drawBadge(afterglow);
+
+  drawHud();
+  vignette();
+  ctx.restore();
+}
+
+/* ---------- candles ------------------------------------------------------ */
+function drawCandles(){
+  const w = cw();
+  const shown = Math.floor(S.revealed);
+  const first = clamp(Math.floor(cam.i - cam.span/2)-1, 0, DATA.candles.length-1);
+  const last  = clamp(Math.ceil (cam.i + cam.span/2)+1, 0, shown-1);
+  const bodyW = clamp(w*CFG.candle.bodyRatio, CFG.candle.minBody, CFG.candle.maxBody);
+  const thin  = w < 2.4;
+  const head  = shown-1;
+  const live  = S.phase!=="MACRO" && S.phase!=="ZOOM" && S.phase!=="REWIND";
+
+  for(let i=first;i<=last;i++){
+    const c = DATA.candles[i];
+    let o=c.o, h=c.h, l=c.l, cl=c.c;
+    const g = S.appear.get(i);
+    if(g !== undefined){
+      const e = easeOutCubic(g);
+      h = lerp(o,c.h,e); l = lerp(o,c.l,e); cl = lerp(o,c.c,e);
+    }
+    const up = cl >= o;
+    const x  = X(i);
+    if(x < plot.x-40 || x > plot.x+plot.w+40) continue;
+
+    /* Gold reads as advance, pearl as retreat. Because both are light on a
+       dark ground, hue alone is a weak signal — so bearish bodies are hollow
+       and bullish solid. Weight, not just colour, tells them apart. */
+    const tone = up ? T().gold : T().pearl;
+    const isHead = i===head && live;
+    if(isHead){ ctx.shadowColor = rgba(tone,0.5); ctx.shadowBlur = 12; }
+
+    if(thin){
+      // too small for hollow bodies to read — fall back to weighted strokes
+      ctx.strokeStyle = rgba(up ? T().goldDeep : T().pearlDim, 0.9);
+      ctx.lineWidth = Math.max(1, w*0.7);
+      ctx.beginPath(); ctx.moveTo(x, Y(h)); ctx.lineTo(x, Y(l)); ctx.stroke();
+      ctx.strokeStyle = rgba(tone, up ? 1 : 0.72);
+      ctx.beginPath(); ctx.moveTo(x, Y(Math.max(o,cl))); ctx.lineTo(x, Y(Math.min(o,cl))); ctx.stroke();
+    } else {
+      ctx.strokeStyle = rgba(tone, up ? 0.95 : 0.86);
+      ctx.lineWidth = CFG.candle.wick;
+      ctx.beginPath(); ctx.moveTo(x, Y(h)); ctx.lineTo(x, Y(l)); ctx.stroke();
+
+      const yTop = Y(Math.max(o,cl)), yBot = Y(Math.min(o,cl));
+      const bh = Math.max(1, yBot-yTop);
+      if(up){
+        ctx.fillStyle = rgba(tone, 1);
+        ctx.fillRect(x-bodyW/2, yTop, bodyW, bh);
+      } else if(bh <= 1.6 || bodyW < 5){
+        ctx.fillStyle = rgba(tone, 0.86);          // doji / tight body: keep it solid
+        ctx.fillRect(x-bodyW/2, yTop, bodyW, bh);
+      } else {
+        // hollow, but not empty: knock out the wick, lay in a faint tint so the
+        // body still reads as an object, then draw the edge
+        ctx.fillStyle = CFG.color.bg;
+        ctx.fillRect(x-bodyW/2, yTop, bodyW, bh);
+        ctx.fillStyle = rgba(tone, 0.10);
+        ctx.fillRect(x-bodyW/2, yTop, bodyW, bh);
+        ctx.strokeStyle = rgba(tone, 0.92);
+        ctx.lineWidth = 1.1;
+        ctx.strokeRect(x-bodyW/2+0.55, yTop+0.55, bodyW-1.1, bh-1.1);
+      }
+    }
+    if(isHead) ctx.shadowBlur = 0;
+  }
+}
+
+/* ---------- position tool ------------------------------------------------ */
+function drawPositionTool(t, a, fade){
+  const grow  = easeOutCubic(clamp(a*1.4,0,1));         // horizontal wipe
+  const alpha = easeOutCubic(clamp(a*1.8,0,1));
+  const x0 = X(t.entryIndex + 0.9);          // start just past the signal candle
+  const x1 = lerp(x0, X(t.exitIndex + 6), grow);   // runs well past the target candle
+  const yE = Y(t.entry), yT = Y(t.tp), yS = Y(t.sl);
+
+  ctx.save();
+  ctx.globalAlpha = alpha * fade;
+
+  ctx.fillStyle = rgba(T().gold, 0.085);               // reward: gold
+  ctx.fillRect(x0, Math.min(yE,yT), x1-x0, Math.abs(yE-yT));
+  ctx.fillStyle = rgba(T().pearl, 0.06);               // risk: quiet, deliberately
+  ctx.fillRect(x0, Math.min(yE,yS), x1-x0, Math.abs(yE-yS));
+
+  const line = (y,color,dash,width)=>{
+    ctx.save(); ctx.setLineDash(dash); ctx.lineWidth=width; ctx.strokeStyle=color;
+    ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x1,y); ctx.stroke(); ctx.restore();
+  };
+  line(yT, rgba(T().gold, 0.8),   [],    1);
+  line(yS, rgba(T().pearl, 0.28),  [],    1);
+  line(yE, rgba(T().dim, 0.85),    [3,5], 1);
+
+  label(x0+12, yT, "TARGET", rgba(T().gold,1),      rgba(T().gold, 0.34));
+  label(x0+12, yE, "ENTRY",  rgba(T().text,0.72),   rgba(T().dim, 0.55));
+  label(x0+12, yS, "STOP",   rgba(T().pearl,0.78),  rgba(T().pearl, 0.22));
+  ctx.restore();
+}
+
+/* ---------- historic trades revealed in the macro view ------------------- */
+function drawHistoricTrades(){
+  if(S.macroReveal<=0) return;
+  const n = DATA.trades.length;
+  for(let k=0;k<n;k++){
+    const t = DATA.trades[k];
+    const handedOver = S.phase==="MACRO" || S.phase==="REWIND"
+                    || (S.phase==="ZOOM" && S.t > 0.6);
+    if(t === DATA.featured && !handedOver) continue;
+    const stagger = clamp((S.macroReveal - (k/n)*0.55) / 0.45, 0, 1);
+    if(stagger<=0) continue;
+
+    const x0 = X(t.entryIndex-0.5), x1 = X(t.exitIndex+1.2);
+    if(x1 < plot.x-20 || x0 > plot.x+plot.w+20) continue;
+    const yE=Y(t.entry), yT=Y(t.tp), yS=Y(t.sl);
+
+    ctx.save();
+    ctx.globalAlpha = easeOutCubic(stagger);
+    ctx.fillStyle = rgba(T().gold, 0.10);
+    ctx.fillRect(x0, Math.min(yE,yT), x1-x0, Math.abs(yE-yT));
+    ctx.fillStyle = rgba(T().pearl, 0.045);
+    ctx.fillRect(x0, Math.min(yE,yS), x1-x0, Math.abs(yE-yS));
+
+    const yExit = t.won ? yT : yS;                       // where the trade closed
+    const exitTone = t.won ? T().gold : T().pearlDim;
+    ctx.strokeStyle = rgba(exitTone, t.won ? 0.6 : 0.4); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x0,yExit); ctx.lineTo(x1,yExit); ctx.stroke();
+
+    ctx.setLineDash([2,4]); ctx.lineWidth = 1;           // trajectory to the exit
+    ctx.strokeStyle = rgba(exitTone, t.won ? 0.45 : 0.3);
+    ctx.beginPath(); ctx.moveTo(x0,yE); ctx.lineTo(x1,yExit); ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.restore();
+  }
+}
+
+/* ---------- outcome marks: tick for a win, cross for a stop-out ----------- */
+function drawResultMarks(){
+  const n = DATA.trades.length;
+  for(let k=0;k<n;k++){
+    const t = DATA.trades[k];
+    const p = clamp((S.marks - (k/n)*0.45) / 0.55, 0, 1);
+    if(p<=0) continue;
+
+    const x = X((t.entryIndex + t.exitIndex)/2);
+    const y = Math.min(Y(t.tp), Y(t.sl)) - 20;           // above the box, either direction
+    if(x < plot.x-30 || x > plot.x+plot.w+30) continue;
+
+    const win = t.won;
+    // a loss is stated, not alarmed about — muted pearl, no red
+    const accent = win ? T().gold : T().pearlDim;
+
+    ctx.save();
+    ctx.globalAlpha *= clamp(p*1.5, 0, 1);
+    ctx.translate(x, y);
+    ctx.scale(easeOutBack(p), easeOutBack(p));
+
+    if(win){ ctx.shadowColor = rgba(accent,0.45); ctx.shadowBlur = 9; }
+    ctx.fillStyle = rgba(T().plate, 0.95);
+    ctx.beginPath(); ctx.arc(0,0,8.5,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = rgba(accent, win ? 0.55 : 0.4);
+    ctx.lineWidth = 1; ctx.stroke();
+
+    ctx.strokeStyle = rgba(accent, win ? 1 : 0.75);
+    ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath();
+    if(win){
+      ctx.moveTo(-4,0.2); ctx.lineTo(-1.2,3.2); ctx.lineTo(4.3,-3.4);
+    } else {
+      ctx.moveTo(-3.1,-3.1); ctx.lineTo(3.1,3.1);
+      ctx.moveTo(3.1,-3.1);  ctx.lineTo(-3.1,3.1);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ---------- target-hit flash -------------------------------------------- */
+function drawFlash(a){
+  const t = DATA.featured;
+  const f = S.flash;
+  const x = X(t.exitIndex), y = Y(t.tp);
+  const decay = Math.exp(-3.2*f) * a;
+
+  ctx.save();
+  ctx.globalAlpha *= a;
+
+  /* Warm light rather than a neon hit: a wash along the target, one soft
+     bloom at the touch, a single thin ring. No hard edges. */
+  const gold = T().gold;
+
+  const g = ctx.createLinearGradient(plot.x, 0, plot.x+plot.w, 0);
+  g.addColorStop(0,    rgba(gold,0));
+  g.addColorStop(0.5,  rgba(gold, 0.18*decay));
+  g.addColorStop(1,    rgba(gold,0));
+  ctx.fillStyle = g;
+  ctx.fillRect(plot.x, y-22, plot.w, 44);
+
+  const r = 26 + 165*easeOutCubic(clamp(f*1.2,0,1));     // soft bloom
+  const rg = ctx.createRadialGradient(x,y,0,x,y,r);
+  rg.addColorStop(0,   rgba(gold, 0.30*decay));
+  rg.addColorStop(0.5, rgba(gold, 0.10*decay));
+  rg.addColorStop(1,   rgba(gold,0));
+  ctx.fillStyle = rg;
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+
+  ctx.strokeStyle = rgba(gold, 0.30*decay);              // single expanding ring
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(x, y, 10 + 96*easeOutCubic(clamp(f*1.4,0,1)), 0, Math.PI*2); ctx.stroke();
+
+  ctx.strokeStyle = rgba(gold, 0.55 + 0.35*decay);       // the target itself, lit
+  ctx.shadowColor = rgba(gold,0.8); ctx.shadowBlur = 12*decay + 3;
+  ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(plot.x, y); ctx.lineTo(plot.x+plot.w, y); ctx.stroke();
+  ctx.restore();
+}
+
+/* ---------- +PROFIT badge ------------------------------------------------ */
+function drawBadge(a){
+  const t = DATA.featured;
+  const b = clamp(S.badge,0,1);
+  const s = easeOutBack(b);
+  const x = X(t.exitIndex), y = Y(t.tp) - 42 + (1-easeOutCubic(b))*16;
+  const text = "TARGET REACHED";
+
+  ctx.save();
+  ctx.globalAlpha = b * a;
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+
+  ctx.font = "600 11px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
+  if("letterSpacing" in ctx) ctx.letterSpacing = "2.2px";
+  const w = ctx.measureText(text).width + 30, h = 27;
+
+  ctx.shadowColor = rgba(T().gold,0.30); ctx.shadowBlur = 18;
+  ctx.fillStyle = rgba(T().plate, 0.94);
+  roundRect(-w/2, -h/2, w, h, 13.5); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = rgba(T().gold, 0.45); ctx.lineWidth = 1;
+  roundRect(-w/2, -h/2, w, h, 13.5); ctx.stroke();
+
+  ctx.fillStyle = rgba(T().gold, 1);
+  ctx.textBaseline = "middle"; ctx.textAlign = "center";
+  ctx.fillText(text, 1, 0.5);
+  if("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+  ctx.restore();
+}
+
+/* ---------- minimal HUD: symbol + state caption -------------------------- */
+function drawHud(){
+  const caption = {
+    INTRO:"", GEN:"SCANNING", PAUSE:"SIGNAL DETECTED", SETUP:"LONG POSITION ARMED",
+    RUN:"IN TRADE", HIT:"TARGET HIT", HOLD:"TARGET HIT", ZOOM:"",
+    MACRO:"SESSION REVIEW", REWIND:"SESSION REVIEW"
+  }[S.phase];
+  // the caption dissolves as the rewind pulls away instead of cutting out
+  const capFade = S.phase==="REWIND" ? clamp(1 - S.t/0.45, 0, 1) : 1;
+
+  ctx.save();
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+
+  // instrument, then a quieter qualifier beneath it
+  ctx.font = "500 14px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
+  if("letterSpacing" in ctx) ctx.letterSpacing = "0.4px";
+  ctx.fillStyle = rgba(T().text, 0.92);
+  ctx.fillText(CFG.symbol, plot.x, 20);
+
+  ctx.font = "500 8.5px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
+  if("letterSpacing" in ctx) ctx.letterSpacing = "2.4px";
+  ctx.fillStyle = rgba(T().dim, 0.95);
+  ctx.fillText(CFG.market, plot.x+1, 34);
+
+  if(caption && capFade > 0){
+    const hot = S.phase==="HIT" || S.phase==="HOLD";
+    ctx.globalAlpha = capFade;
+    ctx.textAlign = "right";
+    ctx.font = "500 8.5px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
+    if("letterSpacing" in ctx) ctx.letterSpacing = "2.4px";
+    ctx.fillStyle = hot ? rgba(T().gold, 0.95) : rgba(T().dim, 0.95);
+    ctx.fillText(caption, plot.x+plot.w, 20);
+
+    // hairline rule under the caption, the width of the text
+    const cw2 = ctx.measureText(caption).width;
+    ctx.globalAlpha = capFade * (hot ? 0.5 : 0.22);
+    ctx.fillStyle = hot ? rgba(T().gold,1) : rgba(T().dim,1);
+    ctx.fillRect(plot.x+plot.w-cw2, 29, cw2, 1);
+  }
+  if("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+  ctx.restore();
+}
+
+function vignette(){
+  // barely there — enough to seat the chart, not enough to notice
+  const g = ctx.createRadialGradient(W/2,H*0.46,Math.min(W,H)*0.42,W/2,H*0.46,Math.max(W,H)*0.82);
+  g.addColorStop(0,"rgba(0,0,0,0)");
+  g.addColorStop(1,"rgba(0,0,0,0.22)");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+}
+
+/* ---------- small drawing helpers --------------------------------------- */
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+/* Dark plate + accent stroke, so a label stays readable on top of candles. */
+function label(x,y,text,color,border){
+  ctx.save();
+  ctx.font = "500 9px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
+  if("letterSpacing" in ctx) ctx.letterSpacing = "2px";
+  const w = ctx.measureText(text).width + 20, h = 17;
+  ctx.fillStyle = rgba(T().plate, 0.88); roundRect(x, y-h/2, w, h, h/2); ctx.fill();
+  ctx.strokeStyle = border; ctx.lineWidth = 1; ctx.stroke();
+  ctx.fillStyle = color; ctx.textBaseline = "middle"; ctx.textAlign = "left";
+  ctx.fillText(text, x+10, y+0.5);
+  if("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+  ctx.restore();
+}
+
+/* ============================================================================
+   LOOP
+   ========================================================================== */
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(!lastTs) lastTs = ts;
+  let dt = (ts - lastTs)/1000;
+  lastTs = ts;
+  if(paused) return;
+  dt = Math.min(dt, 0.05);                        // clamp after tab switches
+  update(dt);
+  draw();
+}
+
+/* ============================================================================
+   INTERACTION
+   ========================================================================== */
+canvas.addEventListener("click", ()=>{ paused=false; resetRun(); fadeHint(); });
+window.addEventListener("keydown", e=>{
+  if(e.code==="Space"){ e.preventDefault(); paused = !paused; fadeHint(); }
+});
+let hintTimer = setTimeout(()=>hint.style.opacity="0", 4200);
+function fadeHint(){ hint.style.opacity="0"; clearTimeout(hintTimer); }
+
+resize();
+resetRun();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
