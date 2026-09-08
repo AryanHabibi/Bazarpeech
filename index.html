@@ -168,7 +168,9 @@ a{color:inherit; text-decoration:none}
 .story{position:relative}
 .story__media{
   position:sticky; inset-block-start:var(--nav-h);
-  height:calc(100vh - var(--nav-h)); z-index:0;
+  height:calc(100vh - var(--nav-h));
+  height:calc(100dvh - var(--nav-h));   /* dvh: don't clip when the mobile URL bar hides */
+  z-index:0;
 }
 .chart-frame{position:relative; width:100%; height:100%; overflow:hidden}
 .chart-frame canvas{display:block; width:100%; height:100%}
@@ -177,6 +179,7 @@ a{color:inherit; text-decoration:none}
 .story__copy{
   position:relative; z-index:2;
   margin-block-start:calc(-1 * (100vh - var(--nav-h)));
+  margin-block-start:calc(-1 * (100dvh - var(--nav-h)));   /* keep in step with .story__media */
   pointer-events:none;
 }
 .beat{
@@ -1548,27 +1551,37 @@ function tryStep(dir, e){
   return true;
 }
 
-addEventListener("wheel", e => {
-  const dir = Math.sign(e.deltaY);
-  if(dir) tryStep(dir, e);
-}, {passive:false});
+/* Only hijack the scroll where a precise pointer makes a deliberate "one
+   gesture = one section" step feel right. On touch devices this fought the
+   browser's own momentum scrolling — every swipe became a forced 1.1s scripted
+   scroll, so the story read as frozen — so phones and tablets scroll natively.
+   The chart is a pure function of scroll position and stays sticky, so it still
+   scrubs frame-for-frame either way. */
+const DISCRETE_STEP = matchMedia("(min-width: 900px) and (pointer: fine)").matches;
 
-addEventListener("touchstart", e => { touchY = e.touches[0].clientY; }, {passive:true});
-addEventListener("touchmove", e => {
-  if(touchY === null) return;
-  const dy = touchY - e.touches[0].clientY;
-  if(Math.abs(dy) < 26) return;
-  if(tryStep(Math.sign(dy), e)) touchY = null;
-}, {passive:false});
-addEventListener("touchend", () => { touchY = null; }, {passive:true});
+if(DISCRETE_STEP){
+  addEventListener("wheel", e => {
+    const dir = Math.sign(e.deltaY);
+    if(dir) tryStep(dir, e);
+  }, {passive:false});
 
-addEventListener("keydown", e => {
-  const modalEl = document.getElementById("joinModal");
-  if(modalEl && !modalEl.hidden) return;                       // dialog owns keys
-  if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-  const dir = {ArrowDown:1, PageDown:1, " ":1, ArrowUp:-1, PageUp:-1}[e.key];
-  if(dir) tryStep(dir, e);
-});
+  addEventListener("touchstart", e => { touchY = e.touches[0].clientY; }, {passive:true});
+  addEventListener("touchmove", e => {
+    if(touchY === null) return;
+    const dy = touchY - e.touches[0].clientY;
+    if(Math.abs(dy) < 26) return;
+    if(tryStep(Math.sign(dy), e)) touchY = null;
+  }, {passive:false});
+  addEventListener("touchend", () => { touchY = null; }, {passive:true});
+
+  addEventListener("keydown", e => {
+    const modalEl = document.getElementById("joinModal");
+    if(modalEl && !modalEl.hidden) return;                       // dialog owns keys
+    if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    const dir = {ArrowDown:1, PageDown:1, " ":1, ArrowUp:-1, PageUp:-1}[e.key];
+    if(dir) tryStep(dir, e);
+  });
+}
 
 document.getElementById("yr").textContent=new Date().getFullYear();
 resize();
