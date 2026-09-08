@@ -314,7 +314,7 @@ a{color:inherit; text-decoration:none}
       <a href="#how">How it works</a>
       <a href="#access">Access</a>
     </nav>
-    <button class="btn" type="button" data-join>Join Wishlist</button>
+    <button class="btn" type="button" data-join>Join Waitlist</button>
   </div>
 </header>
 
@@ -331,7 +331,7 @@ a{color:inherit; text-decoration:none}
         executes them exactly, on every trade, without discretion.
       </p>
       <div class="hero__cta">
-        <button class="btn btn--solid" type="button" data-join>Join Wishlist</button>
+        <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
         <a class="btn btn--ghost" href="#story">See how it trades</a>
       </div>
       <dl class="hero__meta">
@@ -429,7 +429,7 @@ a{color:inherit; text-decoration:none}
         BazarPeech is run by a small team of quantitative traders and engineers.
         Leave your email and we’ll be in touch when a place opens.
       </p>
-      <button class="btn btn--solid" type="button" data-join>Join Wishlist</button>
+      <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
     </div>
   </section>
 
@@ -473,8 +473,8 @@ a{color:inherit; text-decoration:none}
     <button class="modal__close" type="button" data-close aria-label="Close">&#10005;</button>
 
     <div id="joinForm">
-      <p class="eyebrow">Wishlist</p>
-      <h3 id="joinTitle">Join the wishlist.</h3>
+      <p class="eyebrow">Waitlist</p>
+      <h3 id="joinTitle">Join the waitlist.</h3>
       <p class="modal__lead">Leave your email and we&rsquo;ll let you know when access opens.</p>
 
       <form id="joinFormEl" novalidate>
@@ -483,7 +483,7 @@ a{color:inherit; text-decoration:none}
           <input id="joinEmail" name="email" type="email" inputmode="email"
                  autocomplete="email" placeholder="you@example.com" required>
         </div>
-        <button class="btn btn--solid" type="submit" id="joinSubmit">Join Wishlist</button>
+        <button class="btn btn--solid" type="submit" id="joinSubmit">Join Waitlist</button>
         <p class="modal__msg" id="joinMsg" role="status" aria-live="polite"></p>
       </form>
 
@@ -1420,7 +1420,7 @@ function closeModal(){
     formWrap.hidden=false; doneEl.hidden=true;
     formEl.reset(); msgEl.textContent="";
     emailEl.removeAttribute("aria-invalid");
-    submitEl.disabled=false; submitEl.textContent="Join Wishlist";
+    submitEl.disabled=false; submitEl.textContent="Join Waitlist";
     if(opener) opener.focus();
   },260);
 }
@@ -1477,7 +1477,7 @@ formEl.addEventListener("submit",async(e)=>{
   }catch{
     msgEl.textContent="Couldn't reach the server. Please try again.";
   }finally{
-    sending=false; submitEl.disabled=false; submitEl.textContent="Join Wishlist";
+    sending=false; submitEl.disabled=false; submitEl.textContent="Join Waitlist";
   }
 });
 
