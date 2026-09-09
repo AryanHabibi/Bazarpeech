@@ -2,1590 +2,486 @@
 <html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BazarPeech — Algorithmic Gold Trading</title>
-<meta name="description" content="A machine-learning trading system for XAU/USD. Entry, target and stop defined before the position opens, executed without discretion.">
-<meta name="theme-color" content="#0b0a09">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BazarPeech — Systematic Trading Technology</title>
+<meta name="description" content="BazarPeech is a systematic trading algorithm that combines trend recognition, trigger validation, and dynamic risk management.">
+<meta name="theme-color" content="#05090D">
+<link rel="canonical" href="https://bazarpeech.com/">
+<meta name="robots" content="index, follow">
+
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="BazarPeech">
-<meta property="og:title" content="BazarPeech — Algorithmic Gold Trading">
-<meta property="og:description" content="A machine-learning trading system for XAU/USD. Entry, target and stop defined before the position opens.">
+<meta property="og:title" content="BazarPeech — Systematic Trading Technology">
+<meta property="og:description" content="A systematic trading algorithm that combines trend recognition, trigger validation, and dynamic risk management.">
 <meta property="og:url" content="https://bazarpeech.com/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0a09'/%3E%3Cg stroke='%23e4be7d' stroke-width='2.4'%3E%3Cpath d='M11.5 7v18'/%3E%3Cpath d='M11.5 11.5v9.5' stroke-width='6.5'/%3E%3C/g%3E%3Cg stroke='%23e9e5dd' stroke-width='2.4' fill='none'%3E%3Cpath d='M21.5 9v16'/%3E%3Crect x='18.6' y='13.5' width='5.8' height='7.5'/%3E%3C/g%3E%3C/svg%3E">
-<style>
-/* ===========================================================================
-   TOKENS
-   ======================================================================== */
-:root{
-  --bg:#0b0a09;
-  --bg-lift:#100e0d;
-  --gold:#e4be7d;
-  --gold-deep:#9a763a;
-  --pearl:#e9e5dd;
-  --text:#efeae1;
-  --dim:#8a8177;
-  --faint:#5c554d;
-  --hairline:rgba(255,255,255,.07);
-  --hairline-strong:rgba(255,255,255,.12);
-  --gold-glow:rgba(228,190,125,.16);
 
-  --shell:min(1240px,calc(100% - 2 * var(--gutter)));
-  --gutter:clamp(20px,5vw,64px);
-  --nav-h:66px;
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305090D'/%3E%3Cg stroke='%2334E8A5' stroke-width='2.4'%3E%3Cpath d='M11.5 7v18'/%3E%3Cpath d='M11.5 11.5v9.5' stroke-width='6.5'/%3E%3C/g%3E%3Cg stroke='%23F8FAFC' stroke-width='2.4' fill='none'%3E%3Cpath d='M21.5 9v16'/%3E%3Crect x='18.6' y='13.5' width='5.8' height='7.5'/%3E%3C/g%3E%3C/svg%3E">
 
-  --f-display:clamp(2.15rem,5.1vw,3.95rem);
-  --f-h2:clamp(1.9rem,4.4vw,3.1rem);
-  --f-lead:clamp(1rem,1.5vw,1.175rem);
-}
+<link rel="stylesheet" href="styles.css">
 
-*{box-sizing:border-box}
-html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
-body{
-  margin:0; background:var(--bg); color:var(--text);
-  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
-  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "name": "BazarPeech",
+      "url": "https://bazarpeech.com/",
+      "description": "A systematic trading algorithm that combines trend recognition, trigger validation, and dynamic risk management."
+    },
+    {
+      "@type": "WebSite",
+      "name": "BazarPeech",
+      "url": "https://bazarpeech.com/"
+    }
+  ]
 }
-h1,h2,h3{margin:0; font-weight:500; letter-spacing:-.02em; line-height:1.08}
-p{margin:0}
-a{color:inherit; text-decoration:none}
-
-.shell{width:var(--shell); margin-inline:auto}
-
-/* logical properties throughout, so dir="rtl" flips the whole page */
-.eyebrow{
-  font-size:9.5px; letter-spacing:.28em; text-transform:uppercase;
-  color:var(--dim); font-weight:500;
-}
-.rule{height:1px; background:var(--hairline); border:0; margin:0}
-
-/* ===========================================================================
-   NAV
-   ======================================================================== */
-.nav{
-  position:fixed; inset-block-start:0; inset-inline:0; z-index:50; height:var(--nav-h);
-  display:flex; align-items:center;
-  background:rgba(11,10,9,.72); backdrop-filter:blur(14px) saturate(140%);
-  border-block-end:1px solid transparent; transition:border-color .3s, background .3s;
-}
-.nav[data-scrolled]{border-block-end-color:var(--hairline); background:rgba(11,10,9,.9)}
-.nav__in{display:flex; align-items:center; gap:32px; width:var(--shell); margin-inline:auto}
-.brand{display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.02em; font-size:14.5px}
-.brand svg{display:block}
-.nav__links{display:flex; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
-.nav__links a{transition:color .2s}
-.nav__links a:hover{color:var(--text)}
-
-.btn{
-  display:inline-flex; align-items:center; gap:8px;
-  padding:11px 20px; border-radius:999px; font-size:13.5px; font-weight:500;
-  border:1px solid var(--gold); color:var(--gold); background:transparent;
-  transition:background .25s, color .25s, transform .15s; white-space:nowrap; cursor:pointer;
-}
-.btn:hover{background:var(--gold); color:#120e07}
-.btn:active{transform:translateY(1px)}
-.btn--solid{background:var(--gold); color:#120e07}
-.btn--solid:hover{background:#f0d195; border-color:#f0d195}
-.btn--ghost{border-color:var(--hairline-strong); color:var(--text)}
-.btn--ghost:hover{background:rgba(255,255,255,.05); color:var(--text)}
-.nav .btn{padding:9px 17px}
-@media (max-width:860px){ .nav__links{display:none} }
-
-/* ===========================================================================
-   HERO
-   ======================================================================== */
-.hero{
-  position:relative; padding-block:calc(var(--nav-h) + clamp(70px,13vh,130px)) clamp(60px,11vh,110px);
-  overflow:hidden;
-}
-.hero::before{ /* single warm light source, top-start */
-  content:""; position:absolute; inset-block-start:-38%; inset-inline-start:-12%;
-  width:70vw; height:70vw; pointer-events:none;
-  background:radial-gradient(circle, var(--gold-glow), transparent 62%);
-}
-.hero__grid{
-  position:relative; display:grid; align-items:center;
-  grid-template-columns:1.02fr .98fr; gap:clamp(20px,4vw,56px);
-}
-.hero__in{position:relative; max-width:640px}
-
-/* coin stage */
-.hero__coin{
-  position:relative; width:100%; max-width:560px; aspect-ratio:1/1;
-  margin-inline-start:auto; pointer-events:none;
-  align-self:start;                 /* ride up level with the headline */
-  margin-block-start:-4%;
-}
-.hero__coin::before{            /* warm bloom so the coin sits in the scene */
-  content:""; position:absolute; inset:6%;
-  background:radial-gradient(circle at 50% 46%, rgba(228,190,125,.15), transparent 62%);
-  filter:blur(6px);
-}
-.hero__coin::after{             /* contact shadow under it */
-  content:""; position:absolute; inset-inline:30%; inset-block-end:19%;
-  height:5%; border-radius:50%;
-  background:radial-gradient(ellipse at center, rgba(0,0,0,.6), transparent 72%);
-  filter:blur(7px);
-}
-#coinStage{position:absolute; inset:0}
-#coinStage canvas{display:block; width:100%; height:100%}
-/* mirrored copy of the coin, blurred and faded — sits below the contact point */
-#coinRefl{
-  /* width:100% + height:auto — a canvas is a replaced element, so giving it a
-     percentage HEIGHT makes the browser derive its width from the intrinsic
-     aspect ratio, which shrinks it and pins it to one side. The backing store
-     is sized to the slice we want instead. */
-  position:absolute; inset-inline:0; width:100%; height:auto;
-  display:block; pointer-events:none;
-  opacity:.40; filter:blur(3px);
-  -webkit-mask-image:linear-gradient(to bottom, rgba(0,0,0,.85), transparent 86%);
-          mask-image:linear-gradient(to bottom, rgba(0,0,0,.85), transparent 86%);
-}
-
-@media (max-width:900px){
-  .hero__grid{grid-template-columns:1fr; gap:clamp(18px,5vw,36px)}
-  .hero__coin{
-    order:-1;                       /* above the copy on small screens */
-    max-width:330px; margin-inline:auto; margin-block-start:0;
-  }
-}
-.hero h1{font-size:var(--f-display); margin-block:0 26px}
-.hero h1 em{font-style:normal; color:var(--gold)}
-.hero p{font-size:var(--f-lead); color:var(--dim); max-width:56ch}
-.hero__cta{display:flex; flex-wrap:wrap; gap:12px; margin-block-start:36px}
-.hero__meta{
-  display:flex; flex-wrap:wrap; gap:28px; margin-block-start:64px;
-  padding-block-start:26px; border-block-start:1px solid var(--hairline);
-}
-.hero__meta div{min-width:120px}
-.hero__meta dt{font-size:9.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--faint)}
-.hero__meta dd{margin:6px 0 0; font-size:15px; color:var(--text)}
-
-/* ===========================================================================
-   SCROLL STORY — sticky chart, copy scrolls past
-   ======================================================================== */
-/* Full-bleed chart: the canvas fills the viewport and the copy floats on top
-   of it, in the space the price action leaves empty. */
-.story{position:relative}
-.story__media{
-  position:sticky; inset-block-start:var(--nav-h);
-  height:calc(100vh - var(--nav-h));
-  height:calc(100dvh - var(--nav-h));   /* dvh: don't clip when the mobile URL bar hides */
-  z-index:0;
-}
-.chart-frame{position:relative; width:100%; height:100%; overflow:hidden}
-.chart-frame canvas{display:block; width:100%; height:100%}
-
-/* pulled back over the sticky canvas */
-.story__copy{
-  position:relative; z-index:2;
-  margin-block-start:calc(-1 * (100vh - var(--nav-h)));
-  margin-block-start:calc(-1 * (100dvh - var(--nav-h)));   /* keep in step with .story__media */
-  pointer-events:none;
-}
-.beat{
-  min-height:132vh;                     /* taller beat = slower scrub */
-  opacity:0; transition:opacity .55s ease;
-}
-.beat[data-active]{opacity:1}
-/* sticky inside its own beat: the words hold still while the chart works,
-   instead of drifting off the top through the second half of the section */
-.beat__in{
-  position:sticky; inset-block-start:42vh;
-  width:var(--shell); margin-inline:auto;
-}
-.beat__card{max-width:29ch}
-.beat__num{
-  font-size:9.5px; letter-spacing:.28em; color:var(--gold);
-  display:flex; align-items:center; gap:12px; margin-block-end:20px;
-}
-.beat__num::after{content:""; flex:1; height:1px; background:linear-gradient(to right,var(--gold-deep),transparent)}
-[dir="rtl"] .beat__num::after{background:linear-gradient(to left,var(--gold-deep),transparent)}
-.beat h2{font-size:var(--f-h2); margin-block-end:16px}
-.beat p{font-size:var(--f-lead); color:var(--dim)}
-
-@media (max-width:900px){
-  .beat{min-height:112vh}
-  /* sticky must be pinned from the TOP: a `bottom` offset only holds the
-     element while scrolling up, so the copy slid off as the page scrolled down */
-  .beat__in{inset-block-start:57vh}
-  .beat__card{max-width:none}
-}
-
-/* ===========================================================================
-   HOW IT WORKS
-   ======================================================================== */
-.how{padding-block:clamp(90px,15vh,150px); border-block-start:1px solid var(--hairline)}
-.how__head{max-width:620px; margin-block-end:clamp(44px,7vh,72px)}
-.how__head h2{font-size:var(--f-h2); margin-block:18px 18px}
-.how__head p{color:var(--dim); font-size:var(--f-lead)}
-.steps{display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:1px; background:var(--hairline)}
-.step{background:var(--bg); padding:32px 28px 36px; transition:background .3s}
-.step:hover{background:var(--bg-lift)}
-.step__n{font-size:9.5px; letter-spacing:.24em; color:var(--gold); margin-block-end:20px}
-.step h3{font-size:1.06rem; margin-block-end:10px}
-.step p{font-size:14.2px; color:var(--dim)}
-
-/* ===========================================================================
-   CTA + FOOTER
-   ======================================================================== */
-.cta{
-  position:relative; padding-block:clamp(90px,16vh,160px); overflow:hidden;
-  border-block-start:1px solid var(--hairline); text-align:center;
-}
-.cta::before{
-  content:""; position:absolute; inset-block-end:-56%; inset-inline-start:50%;
-  transform:translateX(-50%); width:120vw; height:100vw; pointer-events:none;
-  background:radial-gradient(ellipse at center, var(--gold-glow), transparent 58%);
-}
-.cta__in{position:relative}
-.cta h2{font-size:var(--f-h2); margin-block:18px 18px}
-.cta p{color:var(--dim); font-size:var(--f-lead); max-width:50ch; margin-inline:auto}
-.cta .btn{margin-block-start:34px}
-
-.foot{padding-block:44px 56px; border-block-start:1px solid var(--hairline); font-size:13px; color:var(--faint)}
-.foot__top{display:flex; flex-wrap:wrap; gap:22px; align-items:center; margin-block-end:28px}
-.foot__links{display:flex; gap:22px; margin-inline-start:auto}
-.foot__links a:hover{color:var(--text)}
-.disclaimer{max-width:78ch; line-height:1.7}
-
-/* ===========================================================================
-   JOIN DIALOG
-   ======================================================================== */
-.modal{
-  position:fixed; inset:0; z-index:100; display:grid; place-items:center;
-  padding:20px; opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s;
-}
-.modal[data-open]{opacity:1; visibility:visible}
-.modal__scrim{position:absolute; inset:0; background:rgba(6,5,5,.74); backdrop-filter:blur(6px)}
-.modal__panel{
-  position:relative; width:min(420px,100%); padding:clamp(26px,4vw,36px);
-  background:var(--bg-lift); border-radius:16px;
-  box-shadow:0 0 0 1px var(--hairline-strong), 0 40px 90px -30px #000;
-  transform:translateY(10px) scale(.985); transition:transform .28s cubic-bezier(.2,.8,.3,1);
-}
-.modal[data-open] .modal__panel{transform:none}
-.modal__close{
-  position:absolute; inset-block-start:14px; inset-inline-end:14px;
-  width:30px; height:30px; border:0; border-radius:50%; cursor:pointer;
-  background:transparent; color:var(--dim); font-size:17px; line-height:1;
-  transition:background .2s, color .2s;
-}
-.modal__close:hover{background:rgba(255,255,255,.06); color:var(--text)}
-.modal h3{font-size:1.42rem; margin-block:14px 10px}
-.modal__lead{color:var(--dim); font-size:14.5px; margin-block-end:22px}
-.field{display:flex; flex-direction:column; gap:9px}
-.field label{font-size:9.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--faint)}
-.field input{
-  width:100%; padding:13px 15px; border-radius:10px; color:var(--text);
-  background:rgba(255,255,255,.04); border:1px solid var(--hairline-strong);
-  font:15px/1.2 inherit; transition:border-color .2s, background .2s;
-}
-.field input::placeholder{color:#4f4841}
-.field input:focus{outline:none; border-color:var(--gold); background:rgba(255,255,255,.06)}
-.field input[aria-invalid="true"]{border-color:#b4726a}
-.modal .btn{width:100%; justify-content:center; margin-block-start:18px; padding:13px 20px}
-.modal .btn[disabled]{opacity:.55; cursor:not-allowed}
-.modal__msg{margin-block-start:14px; font-size:13.5px; min-height:1.2em; color:#c98f86}
-.modal__fine{margin-block-start:18px; font-size:12px; color:var(--faint); line-height:1.6}
-.modal__done{text-align:center; padding-block:8px}
-.modal__done .tick{
-  width:46px; height:46px; margin:0 auto 18px; border-radius:50%;
-  border:1px solid rgba(228,190,125,.5); display:grid; place-items:center; color:var(--gold);
-}
-.modal__done h3{margin-block-start:0}
-
-@media (prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  *{transition-duration:.01ms !important}
-}
-</style>
+</script>
 </head>
 <body>
 
-<!-- ======================= NAV ======================= -->
-<header class="nav" id="nav">
-  <div class="nav__in">
-    <a class="brand" href="#top">
-      <svg width="17" height="17" viewBox="0 0 32 32" aria-hidden="true">
-        <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
-        <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site-header" id="site-header">
+  <div class="container site-header__in">
+    <a class="brand" href="#top" aria-label="BazarPeech home">
+      <svg class="brand__mark" width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+        <g stroke="#34E8A5" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
+        <g stroke="#F8FAFC" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
       </svg>
-      BazarPeech
+      <span class="brand__name">BazarPeech</span>
     </a>
-    <nav class="nav__links">
-      <a href="#story">The system</a>
-      <a href="#how">How it works</a>
-      <a href="#access">Access</a>
+
+    <nav class="site-nav" id="site-nav" aria-label="Primary">
+      <a href="#top">Home</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#performance">Performance</a>
+      <a href="#technology">Technology</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#contact">About</a>
     </nav>
-    <button class="btn" type="button" data-join>Join Waitlist</button>
+
+    <button class="btn btn--primary site-header__cta" type="button" data-meeting>
+      Contact us <span aria-hidden="true">→</span>
+    </button>
+
+    <button class="menu-toggle" type="button" id="menu-toggle"
+            aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="mobile-menu" id="mobile-menu" hidden>
+    <nav aria-label="Mobile">
+      <a href="#top">Home</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#performance">Performance</a>
+      <a href="#technology">Technology</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#contact">About</a>
+    </nav>
+    <button class="btn btn--primary" type="button" data-meeting>
+      Contact us <span aria-hidden="true">→</span>
+    </button>
   </div>
 </header>
 
-<main id="top">
+<main id="main">
+<span id="top"></span>
 
-  <!-- ======================= HERO ======================= -->
-  <section class="hero">
-   <div class="shell hero__grid">
-    <div class="hero__in">
-      <h1>The mind of a master trader.<br>The speed of a <em>machine</em>.</h1>
-      <p>
-        BazarPeech runs machine-learning models over XAU/USD price action. Entry,
-        target and stop are fixed before the position opens — and the robot
-        executes them exactly, on every trade, without discretion.
+<!-- ============================ 01 · HERO ============================ -->
+<section class="section hero" aria-labelledby="hero-title">
+  <div class="hero__backdrop" aria-hidden="true">
+    <svg class="hero__ridge" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 320 L0 210 L180 150 L320 205 L470 120 L620 190 L780 90 L940 170 L1100 110 L1260 175 L1440 120 L1440 320 Z"/>
+    </svg>
+    <svg class="hero__candles" id="hero-candles" viewBox="0 0 900 460" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+  </div>
+
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="eyebrow">Systematic trading. Deeper thinking.</p>
+      <h1 id="hero-title">Systematic decisions<br>for <span class="accent">a complex market.</span></h1>
+      <p class="hero__lead">
+        BazarPeech is a systematic trading algorithm that evaluates market
+        conditions, identifies opportunities, and manages risk through a
+        multi-layer decision architecture.
       </p>
       <div class="hero__cta">
-        <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
-        <a class="btn btn--ghost" href="#story">See how it trades</a>
+        <a class="btn btn--primary" href="#how-it-works" data-track="hero_explore_system">
+          Explore the system <span aria-hidden="true">↓</span>
+        </a>
+        <button class="btn btn--ghost" type="button" data-meeting>Contact us</button>
       </div>
-      <dl class="hero__meta">
-        <div><dt>Instrument</dt><dd>XAU/USD spot gold</dd></div>
-        <div><dt>Method</dt><dd>ML signal + rule-based risk</dd></div>
-        <div><dt>Execution</dt><dd>Fully automated</dd></div>
-      </dl>
+      <p class="hero__meta">Discipline. Logic. Continuous improvement.</p>
+      <p class="fineprint">Chart imagery on this page is illustrative, not live market data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 02 · DECISION LAYERS ============================ -->
+<section class="section flow-section" id="how-it-works" aria-labelledby="flow-title">
+  <div class="container">
+    <header class="section__head">
+      <h2 id="flow-title">One decision. <span class="accent">Multiple layers</span> of reasoning.</h2>
+      <p>
+        BazarPeech doesn&rsquo;t enter a position simply because a signal appears.
+        Every potential trade passes through multiple decision-making stages —
+        from understanding market direction, to validating an entry, to
+        determining how much risk should be taken.
+      </p>
+    </header>
+
+    <ol class="flow">
+      <li class="flow__card reveal" style="--i:0">
+        <span class="flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 21h18"/><rect x="4" y="12" width="3.4" height="7" rx="1"/><rect x="10.3" y="7" width="3.4" height="12" rx="1"/><rect x="16.6" y="10" width="3.4" height="9" rx="1"/></svg>
+        </span>
+        <span class="flow__step">01</span>
+        <h3>Market Data</h3>
+        <p>Real-time and historical data.</p>
+      </li>
+      <li class="flow__card reveal" style="--i:1">
+        <span class="flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 16.5l5-5 4 4 8.5-9"/><path d="M16.5 6.5H21V11"/></svg>
+        </span>
+        <span class="flow__step">02</span>
+        <h3>Trend Recognition</h3>
+        <p>What direction is the market leaning?</p>
+      </li>
+      <li class="flow__card reveal" style="--i:2">
+        <span class="flow__icon flow__icon--orange" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg>
+        </span>
+        <span class="flow__step">03</span>
+        <h3>Trigger Signals</h3>
+        <p>Is there an opportunity to enter?</p>
+      </li>
+      <li class="flow__card reveal" style="--i:3">
+        <span class="flow__icon flow__icon--blue" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.66 3.13 3 7 3s7-1.34 7-3V6"/><path d="M5 12v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6"/></svg>
+        </span>
+        <span class="flow__step">04</span>
+        <h3>Money Management</h3>
+        <p>How should this position be structured?</p>
+      </li>
+      <li class="flow__card reveal" style="--i:4">
+        <span class="flow__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4"/><path d="M6 4.5c3.2-2 6.3 1.6 9.5 0 1.6-.8 2.5-.4 2.9-.1v8.2c-.5.3-1.4.7-2.9.1-3.2-1.6-6.3 1.9-9.5 0"/></svg>
+        </span>
+        <span class="flow__step">05</span>
+        <h3>Position Execution</h3>
+        <p>Open and manage the trade.</p>
+      </li>
+    </ol>
+
+    <a class="link-more" href="#technology">See the full engine <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<!-- ============================ 03 · THE JOURNEY OF A POSITION ============================ -->
+<section class="section journey" id="trend" aria-labelledby="journey-title">
+  <div class="journey__inner">
+   <div class="container journey__grid">
+    <div class="journey__copy">
+      <p class="eyebrow" id="j-eyebrow">01 · Trend recognition</p>
+      <h2 id="journey-title">The journey of a position.</h2>
+      <p id="j-body">
+        Every candle is scored for directional tendency. The system reads the
+        trend and waits — no score, on its own, is a trade.
+      </p>
+
+      <ol class="journey__steps" aria-hidden="true">
+        <li id="j-step-1" data-on>Trend recognition</li>
+        <li id="j-step-2">Trigger signal</li>
+        <li id="j-step-3">Money management</li>
+      </ol>
+
+      <p class="journey__readout" aria-live="polite" id="j-readout">
+        <span class="journey__badge is-flat" id="j-state">Reading the trend</span>
+        <span class="journey__sub" id="j-sub">Directional score updates candle by candle</span>
+      </p>
+      <p class="trend-hint">Scroll to follow the position from signal to sizing</p>
+      <a class="link-more" href="#contact">Learn more <span aria-hidden="true">→</span></a>
     </div>
 
-    <div class="hero__coin">
-      <canvas id="coinRefl" aria-hidden="true"></canvas>
-      <div id="coinStage"></div>
+    <div class="journey__visual">
+      <div class="jchart-card">
+        <p class="card-label"><span id="j-chart-label">XAU/USD &middot; weekly</span> <span class="tag">Historical &middot; indicative</span></p>
+        <svg id="jchart" viewBox="0 0 660 300" preserveAspectRatio="xMidYMid meet" role="img"
+             aria-label="A step-by-step XAU/USD position: bars are scored for trend, a trend-aligned breakout fires, entry, stop-loss and take-profit are placed, then position size is calculated before the trade opens.">
+          <g id="j-zones"></g>
+          <g id="j-levels"></g>
+          <g id="j-scores"></g>
+          <g id="j-candles"></g>
+          <g id="j-trigger"></g>
+        </svg>
+        <div class="jchart__legend">
+          <span><i class="sw sw--score"></i> Per-bar score</span>
+          <span><i class="sw sw--tp"></i> Take profit</span>
+          <span><i class="sw sw--sl"></i> Stop loss</span>
+        </div>
+      </div>
+
+      <div class="journey__panels">
+        <!-- ACT 1 -->
+        <div class="jp" id="jp-trend">
+          <p class="card-label">Trend recognition</p>
+          <p class="jp__lead">Each bar is scored 0&ndash;1 for directional tendency. The system reads the trend and waits — no score, on its own, is a trade.</p>
+          <p class="jp__readout"><span class="mono" id="jt-score">0.50</span><span id="jt-state">balanced</span></p>
+          <ul class="factors factors--inline">
+            <li>Price action</li><li>Trend structure</li><li>Momentum</li>
+            <li>Volatility</li><li>Market-cycle context</li><li class="muted">and more…</li>
+          </ul>
+        </div>
+
+        <!-- ACT 2 -->
+        <div class="jp" id="jp-trigger" hidden>
+          <p class="card-label">Trigger signal <span class="tag">Illustrative</span></p>
+          <ol class="pipe" id="j-pipe">
+            <li class="pipe__step">Trend context confirmed</li>
+            <li class="pipe__step">Scanning for signals</li>
+            <li class="pipe__step">Signal detected</li>
+            <li class="pipe__step">Validating conditions</li>
+            <li class="pipe__step">Ready for risk assessment</li>
+          </ol>
+          <p class="jp__row"><span>Signal</span><span id="jg-type">Momentum breakout &middot; aligned with trend</span></p>
+          <p class="jp__row"><span>Levels</span><span class="mono">Entry <b id="jg-entry">&mdash;</b> &middot; SL <b id="jg-sl">&mdash;</b> &middot; TP <b id="jg-tp">&mdash;</b></span></p>
+        </div>
+
+        <!-- ACT 3 -->
+        <div class="jp" id="jp-money" hidden>
+          <p class="card-label">Money management &mdash; position sizing <span class="tag">Illustrative</span></p>
+          <dl class="mm">
+            <div><dt>Account equity</dt><dd class="mono" id="mm-equity">$200,000</dd></div>
+            <div><dt>Risk budget</dt><dd class="mono" id="mm-risk">1.0% &middot; $2,000</dd></div>
+            <div><dt>Entry &minus; stop</dt><dd class="mono" id="mm-stop">80 pts</dd></div>
+            <div><dt>Risk per lot</dt><dd class="mono" id="mm-perlot">$8,000</dd></div>
+            <div class="mm__out"><dt>Position size</dt><dd class="mono" id="mm-size">0.25 lots</dd></div>
+          </dl>
+          <p class="mm__foot">Size = risk budget &divide; risk per lot. Calculated last — then managed to target or stop.</p>
+        </div>
+      </div>
     </div>
    </div>
-  </section>
+  </div>
+</section>
 
-  <!-- ======================= SCROLL STORY ======================= -->
-  <section class="story" id="story">
-    <div class="story__media">
-      <div class="chart-frame" id="chartFrame">
-        <canvas id="chart"></canvas>
-      </div>
-    </div>
 
-    <div class="story__copy" id="beats">
-      <article class="beat" data-beat="0">
-        <div class="beat__in"><div class="beat__card">
-          <p class="beat__num">01 — Opening the position</p>
-          <h2>It waits, then it commits.</h2>
-          <p>Most bars produce no signal. When one scores, entry, target and stop are set in a single step.</p>
-        </div></div>
-      </article>
-
-      <article class="beat" data-beat="1">
-        <div class="beat__in"><div class="beat__card">
-          <p class="beat__num">02 — Hitting the target</p>
-          <h2>The plan doesn't change.</h2>
-          <p>Price moves against it first. The system doesn't flinch — the target was fixed at entry.</p>
-        </div></div>
-      </article>
-
-      <article class="beat" data-beat="2">
-        <div class="beat__in"><div class="beat__card">
-          <p class="beat__num">03 — Session review</p>
-          <h2>Judged over hundreds of trades.</h2>
-          <!-- REPLACE with real audited figures once you have them. -->
-          <p>Wins and losses, executed identically. What's engineered is the ratio between them.</p>
-        </div></div>
-      </article>
-    </div>
-  </section>
-
-  <!-- ======================= HOW IT WORKS ======================= -->
-  <section class="how" id="how">
-    <div class="shell">
-      <div class="how__head">
-        <p class="eyebrow">How it works</p>
-        <h2>Four stages, no discretion between them.</h2>
-        <p>
-          Nothing in the chain waits for a human opinion. That is the point —
-          the same input produces the same trade every time.
-        </p>
-      </div>
-      <div class="steps">
-        <div class="step">
-          <p class="step__n">01</p>
-          <h3>Data</h3>
-          <p>Years of XAU/USD price history, cleaned, aligned to session times and labelled for what happened after each bar.</p>
-        </div>
-        <div class="step">
-          <p class="step__n">02</p>
-          <h3>Model</h3>
-          <p>Models are trained to score the conditions that precede a directional move, and are validated on periods they never saw in training.</p>
-        </div>
-        <div class="step">
-          <p class="step__n">03</p>
-          <h3>Risk</h3>
-          <p>A separate rule layer sets stop, target and position size. It can veto a signal the model likes; the model cannot override it.</p>
-        </div>
-        <div class="step">
-          <p class="step__n">04</p>
-          <h3>Execution</h3>
-          <p>The robot places the order, manages it to target or stop, and writes the result to the log. No manual intervention.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======================= CTA ======================= -->
-  <section class="cta" id="access">
-    <div class="shell cta__in">
-      <p class="eyebrow">Access</p>
-      <h2>Built by people who trade it.</h2>
+<!-- ============================ 06 · COMPLETE ENGINE ============================ -->
+<section class="section engine" id="technology" aria-labelledby="engine-title">
+  <div class="container">
+    <header class="section__head">
+      <p class="eyebrow">The complete engine</p>
+      <h2 id="engine-title">Three systems. One decision engine.</h2>
       <p>
-        BazarPeech is run by a small team of quantitative traders and engineers.
-        Leave your email and we’ll be in touch when a place opens.
+        Trend recognition, trigger validation and money management work as one
+        system — turning market data into structured, disciplined trading
+        decisions, then managing the position continuously.
       </p>
-      <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
-    </div>
-  </section>
+    </header>
 
-  <!-- ======================= FOOTER ======================= -->
-  <footer class="foot">
-    <div class="shell">
-      <div class="foot__top">
-        <a class="brand" href="#top">
-          <svg width="15" height="15" viewBox="0 0 32 32" aria-hidden="true">
-            <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
-            <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
-          </svg>
-          BazarPeech
-        </a>
-        <div class="foot__links">
-          <a href="#story">The system</a>
-          <a href="#how">How it works</a>
-          <a href="#access">Contact</a>
+    <div class="diagram" role="img" aria-label="Flow: market data feeds trend recognition, trigger signals and money management, which produce a position execution that is then continuously managed.">
+      <div class="diagram__node diagram__node--in">Market Data</div>
+      <div class="diagram__arrow" aria-hidden="true">→</div>
+      <div class="diagram__mods">
+        <div class="diagram__mod mod--green">Trend<br>Recognition</div>
+        <div class="diagram__mod mod--orange">Trigger<br>Signals</div>
+        <div class="diagram__mod mod--blue">Money<br>Management</div>
+      </div>
+      <div class="diagram__arrow" aria-hidden="true">→</div>
+      <div class="diagram__node diagram__node--out">Position<br>Execution</div>
+      <div class="diagram__loop">
+        <span aria-hidden="true">↳</span> Continuous management
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 07 · PERFORMANCE ============================ -->
+<section class="section perf" id="performance" aria-labelledby="perf-title">
+  <div class="container">
+    <header class="section__head">
+      <p class="eyebrow">Performance</p>
+      <h2 id="perf-title">Logic is interesting. Results matter.</h2>
+      <p>
+        BazarPeech is evaluated on historical market data using its complete
+        decision-making architecture.
+      </p>
+    </header>
+
+    <p class="disclosure" role="note">
+      <strong>Illustrative data.</strong> The metrics and curve below are
+      placeholders for layout only. They are not verified results and must be
+      replaced with figures traceable to a single test dataset and methodology
+      before publication. Past performance — including backtested or simulated
+      results — does not indicate future results.
+    </p>
+
+    <ul class="metrics">
+      <li class="metric reveal" style="--i:0"><span class="metric__val" data-count="284" data-prefix="+" data-suffix="%">+284%</span><span class="metric__key">Total return · backtested</span></li>
+      <li class="metric reveal" style="--i:1"><span class="metric__val" data-count="1.8" data-decimals="1">1.8</span><span class="metric__key">Sharpe ratio</span></li>
+      <li class="metric reveal" style="--i:2"><span class="metric__val" data-count="58" data-suffix="%">58%</span><span class="metric__key">Win rate</span></li>
+      <li class="metric reveal" style="--i:3"><span class="metric__val neg" data-count="-12" data-suffix="%">−12%</span><span class="metric__key">Max drawdown</span></li>
+      <li class="metric reveal" style="--i:4"><span class="metric__val" data-count="1247">1,247</span><span class="metric__key">Total trades</span></li>
+    </ul>
+
+    <figure class="equity">
+      <svg class="equity__svg" id="equity-svg" viewBox="0 0 760 260" preserveAspectRatio="none" aria-hidden="true">
+        <path class="equity__area" d="M 4.0 240 L 4.0 220.5 L 13.1 204.2 L 22.1 191.8 L 31.2 159.7 L 40.2 157.4 L 49.3 169.2 L 58.4 160.5 L 67.4 159.3 L 76.5 168.7 L 85.5 146.9 L 94.6 164.7 L 103.7 156.1 L 112.7 173.7 L 121.8 162.1 L 130.8 140.0 L 139.9 136.8 L 149.0 153.8 L 158.0 103.5 L 167.1 93.5 L 176.1 102.4 L 185.2 91.2 L 194.3 109.6 L 203.3 104.6 L 212.4 78.4 L 221.4 89.3 L 230.5 73.8 L 239.6 61.4 L 248.6 35.1 L 257.7 34.3 L 266.7 79.0 L 275.8 87.8 L 284.9 139.3 L 293.9 169.4 L 303.0 186.5 L 312.0 187.0 L 321.1 195.1 L 330.2 236.6 L 339.2 211.7 L 348.3 237.5 L 357.3 212.7 L 366.4 167.0 L 375.5 183.9 L 384.5 175.0 L 393.6 199.4 L 402.7 201.2 L 411.7 200.4 L 420.8 189.4 L 429.8 181.8 L 438.9 158.9 L 448.0 177.4 L 457.0 207.4 L 466.1 198.0 L 475.1 179.4 L 484.2 152.9 L 493.3 163.5 L 502.3 159.3 L 511.4 198.7 L 520.4 217.4 L 529.5 213.9 L 538.6 240.0 L 547.6 203.4 L 556.7 225.1 L 565.7 239.0 L 574.8 233.0 L 583.9 212.9 L 592.9 205.4 L 602.0 197.9 L 611.0 179.8 L 620.1 175.2 L 629.2 152.6 L 638.2 174.1 L 647.3 189.0 L 656.3 145.3 L 665.4 118.6 L 674.5 111.5 L 683.5 111.6 L 692.6 50.3 L 701.6 53.4 L 710.7 48.1 L 719.8 55.7 L 728.8 45.2 L 737.9 28.8 L 746.9 13.5 L 756.0 12.0 L 756.0 240 Z"/>
+        <path class="equity__line" id="equity-line" d="M 4.0 220.5 L 13.1 204.2 L 22.1 191.8 L 31.2 159.7 L 40.2 157.4 L 49.3 169.2 L 58.4 160.5 L 67.4 159.3 L 76.5 168.7 L 85.5 146.9 L 94.6 164.7 L 103.7 156.1 L 112.7 173.7 L 121.8 162.1 L 130.8 140.0 L 139.9 136.8 L 149.0 153.8 L 158.0 103.5 L 167.1 93.5 L 176.1 102.4 L 185.2 91.2 L 194.3 109.6 L 203.3 104.6 L 212.4 78.4 L 221.4 89.3 L 230.5 73.8 L 239.6 61.4 L 248.6 35.1 L 257.7 34.3 L 266.7 79.0 L 275.8 87.8 L 284.9 139.3 L 293.9 169.4 L 303.0 186.5 L 312.0 187.0 L 321.1 195.1 L 330.2 236.6 L 339.2 211.7 L 348.3 237.5 L 357.3 212.7 L 366.4 167.0 L 375.5 183.9 L 384.5 175.0 L 393.6 199.4 L 402.7 201.2 L 411.7 200.4 L 420.8 189.4 L 429.8 181.8 L 438.9 158.9 L 448.0 177.4 L 457.0 207.4 L 466.1 198.0 L 475.1 179.4 L 484.2 152.9 L 493.3 163.5 L 502.3 159.3 L 511.4 198.7 L 520.4 217.4 L 529.5 213.9 L 538.6 240.0 L 547.6 203.4 L 556.7 225.1 L 565.7 239.0 L 574.8 233.0 L 583.9 212.9 L 592.9 205.4 L 602.0 197.9 L 611.0 179.8 L 620.1 175.2 L 629.2 152.6 L 638.2 174.1 L 647.3 189.0 L 656.3 145.3 L 665.4 118.6 L 674.5 111.5 L 683.5 111.6 L 692.6 50.3 L 701.6 53.4 L 710.7 48.1 L 719.8 55.7 L 728.8 45.2 L 737.9 28.8 L 746.9 13.5 L 756.0 12.0"/>
+      </svg>
+      <div class="equity__axis"><span>2020</span><span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span></div>
+      <figcaption>Illustrative equity curve · XAU/USD · backtested · costs and slippage modelled · sample is illustrative only.</figcaption>
+    </figure>
+
+    <a class="link-more" href="#contact" data-track="performance_details_open">View detailed results <span aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<!-- ============================ 08 · FUNDAMENTAL INTELLIGENCE ============================ -->
+<section class="section roadmap" id="roadmap" aria-labelledby="road-title">
+  <div class="container split__grid">
+    <div class="split__copy">
+      <p class="eyebrow">The next layer <span class="badge">In development</span></p>
+      <h2 id="road-title">BazarPeech understands price.<br><span class="accent">Next, it will understand why.</span></h2>
+      <p>
+        We&rsquo;re developing a fundamental-intelligence layer that uses
+        machine-learning models and LLMs to read, analyse and interpret market
+        news and information. It is intended to add external context to the
+        decision engine — informing whether to open a new position, skip an
+        otherwise valid setup, or adjust an existing one.
+      </p>
+      <p class="note">This layer is not deployed. Source names below are examples of intended inputs; BazarPeech does not currently integrate these providers.</p>
+      <a class="link-more" href="#contact" data-track="roadmap_learn_more">Follow our progress <span aria-hidden="true">→</span></a>
+    </div>
+
+    <div class="split__visual">
+      <div class="rm-flow">
+        <div class="rm-node">
+          <p class="card-label">Intended sources</p>
+          <ul class="factors">
+            <li>Bloomberg</li><li>Yahoo Finance</li><li>CNBC</li><li>Reuters</li><li class="muted">and more…</li>
+          </ul>
+        </div>
+        <div class="rm-arrow" aria-hidden="true">→</div>
+        <div class="rm-node rm-node--mid">
+          <span class="rm-badge">AI fundamental analysis</span>
+          <p>Read · analyse · interpret</p>
+        </div>
+        <div class="rm-arrow" aria-hidden="true">→</div>
+        <div class="rm-node">
+          <p class="card-label">Market context</p>
+          <ul class="factors">
+            <li>New-position decisions</li><li>Adjust existing positions</li><li>Risk &amp; exposure context</li><li>Event-impact analysis</li>
+          </ul>
         </div>
       </div>
-      <hr class="rule">
-      <p class="disclaimer" style="margin-block-start:24px">
-        <strong style="color:var(--dim); font-weight:500">Risk warning.</strong>
-        Trading gold and other leveraged instruments carries a high level of risk
-        and can result in the loss of more than your initial deposit. Automated
-        systems do not remove that risk. Past performance, including any
-        backtested or simulated result, is not a reliable indicator of future
-        results. Nothing on this page is investment advice. Only trade with
-        capital you can afford to lose.
-      </p>
-      <p style="margin-block-start:18px">© <span id="yr">2026</span> BazarPeech. The chart on this page is an illustration of how the system behaves, rendered from generated data — it is not a record of live trading.</p>
     </div>
-  </footer>
+  </div>
+</section>
+
+<!-- ============================ 09 · CTA + FOOTER ============================ -->
+<section class="section cta" id="contact" aria-labelledby="cta-title">
+  <div class="container cta__grid">
+    <div>
+      <h2 id="cta-title">Built for a more disciplined tomorrow.</h2>
+      <p>
+        BazarPeech is being developed as a quantitative trading technology for
+        organisations interested in systematic market analysis, execution and
+        risk management.
+      </p>
+      <div class="cta__actions">
+        <button class="btn btn--primary" type="button" data-meeting data-track="contact_click">
+          Contact us <span aria-hidden="true">→</span>
+        </button>
+        <button class="btn btn--ghost" type="button" data-meeting>Get in touch</button>
+      </div>
+      <ul class="pillars">
+        <li>Systematic approach</li>
+        <li>Data-driven decisions</li>
+        <li>Continuous development</li>
+      </ul>
+    </div>
+    <blockquote class="cta__quote">
+      &ldquo;Better decisions create better opportunities.&rdquo;
+      <cite>— BazarPeech</cite>
+    </blockquote>
+  </div>
+</section>
 
 </main>
 
-<!-- ======================= JOIN DIALOG ======================= -->
-<div class="modal" id="joinModal" role="dialog" aria-modal="true" aria-labelledby="joinTitle" hidden>
+<footer class="site-footer">
+  <div class="container site-footer__in">
+    <div class="site-footer__brand">
+      <a class="brand" href="#top" aria-label="BazarPeech home">
+        <svg class="brand__mark" width="18" height="18" viewBox="0 0 32 32" aria-hidden="true">
+          <g stroke="#34E8A5" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
+          <g stroke="#F8FAFC" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
+        </svg>
+        <span class="brand__name">BazarPeech</span>
+      </a>
+      <p>Algorithmic intelligence for financial markets.</p>
+    </div>
+    <nav class="site-footer__links" aria-label="Footer">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+  <div class="container">
+    <p class="risk">
+      <strong>Risk warning.</strong> Trading financial instruments, including
+      leveraged products such as gold, carries a high level of risk and can
+      result in losses exceeding your deposit. Automated systems do not remove
+      that risk. Nothing on this page is investment advice. Past performance is
+      not indicative of future results.
+    </p>
+    <p class="copy">© <span id="year">2026</span> BazarPeech. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ============================ MEETING DIALOG ============================ -->
+<div class="modal" id="meeting-modal" role="dialog" aria-modal="true" aria-labelledby="meeting-title" hidden>
   <div class="modal__scrim" data-close></div>
   <div class="modal__panel">
     <button class="modal__close" type="button" data-close aria-label="Close">&#10005;</button>
 
-    <div id="joinForm">
-      <p class="eyebrow">Waitlist</p>
-      <h3 id="joinTitle">Join the waitlist.</h3>
-      <p class="modal__lead">Leave your email and we&rsquo;ll let you know when access opens.</p>
+    <div id="meeting-form-wrap">
+      <p class="eyebrow">Contact us</p>
+      <h3 id="meeting-title">Let&rsquo;s talk.</h3>
+      <p class="modal__lead">Leave your email and we&rsquo;ll get back to you.</p>
 
-      <form id="joinFormEl" novalidate>
+      <form id="meeting-form" novalidate>
         <div class="field">
-          <label for="joinEmail">Email address</label>
-          <input id="joinEmail" name="email" type="email" inputmode="email"
+          <label for="meeting-email">Email address</label>
+          <input id="meeting-email" name="email" type="email" inputmode="email"
                  autocomplete="email" placeholder="you@example.com" required>
         </div>
-        <button class="btn btn--solid" type="submit" id="joinSubmit">Join Waitlist</button>
-        <p class="modal__msg" id="joinMsg" role="status" aria-live="polite"></p>
+        <button class="btn btn--primary btn--block" type="submit" id="meeting-submit">Send</button>
+        <p class="modal__msg" id="meeting-msg" role="status" aria-live="polite"></p>
       </form>
 
       <p class="modal__fine">
-        We store your address only to contact you about access, and we don&rsquo;t
-        share it. Ask us to delete it at any time.
+        We store your address only to contact you about your enquiry, and we
+        don&rsquo;t share it. Ask us to delete it at any time.
       </p>
     </div>
 
-    <div class="modal__done" id="joinDone" hidden>
+    <div class="modal__done" id="meeting-done" hidden>
       <div class="tick" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 6L9 17l-5-5"/>
-        </svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
       </div>
-      <h3>You&rsquo;re on the list.</h3>
-      <p class="modal__lead" style="margin-block-end:0">
-        We&rsquo;ll email you when a place opens.
-      </p>
+      <h3>Message received.</h3>
+      <p class="modal__lead" style="margin:0">We&rsquo;ll be in touch shortly.</p>
     </div>
   </div>
 </div>
 
-<script src="/vendor/three.min.js" defer></script>
-<script>
-/* ===========================================================================
-   Gold coin — hero centrepiece.
-
-   Physically-based metal needs something to reflect: a metal surface with no
-   environment renders black. Rather than ship an HDR file, the environment is
-   painted procedurally to a canvas (a warm studio: key softbox, fill, bounce)
-   and run through PMREM, which is what gives the gold its depth.
-
-   Motion is a coin standing on its edge: it spins about its own axis (the
-   roll), the whole thing precesses so the face swings past the viewer, and the
-   lean oscillates — the wobble of a coin settling on a table.
-   ========================================================================= */
-(function(){
-  "use strict";
-  document.addEventListener("DOMContentLoaded", function(){ try{
-    const host = document.getElementById("coinStage");
-    const THREE = window.THREE;
-    if(!host || !THREE) return;                       // page works fine without it
-
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let renderer;
-    try{
-      renderer = new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:"high-performance"});
-    }catch(e){ host.remove(); return; }               // no WebGL: drop it silently
-
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.13;
-    host.appendChild(renderer.domElement);
-
-    const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(27, 1, 0.1, 100);   // long lens, product-shot feel
-    camera.position.set(0, 0.18, 7.4);
-    camera.lookAt(0, 0, 0);
-
-    /* ---------------------------------------------------- environment --- */
-    function envTexture(){
-      const c = document.createElement("canvas"); c.width = 1024; c.height = 512;
-      const x = c.getContext("2d");
-      const g = x.createLinearGradient(0,0,0,512);
-      g.addColorStop(0,"#43372642"); g.addColorStop(0,"#453927");
-      g.addColorStop(0.40,"#7a6239"); g.addColorStop(0.52,"#241d15");
-      g.addColorStop(1,"#0b0906");
-      x.fillStyle = g; x.fillRect(0,0,1024,512);
-
-      const blob = (cx,cy,rx,ry,col,a)=>{
-        x.save(); x.globalAlpha = a; x.translate(cx,cy); x.scale(rx,ry);
-        const rg = x.createRadialGradient(0,0,0,0,0,1);
-        rg.addColorStop(0,col); rg.addColorStop(1,"rgba(0,0,0,0)");
-        x.fillStyle = rg; x.beginPath(); x.arc(0,0,1,0,7); x.fill(); x.restore();
-      };
-      const band = x.createLinearGradient(0,175,0,255);
-      band.addColorStop(0,"rgba(255,236,200,0)");
-      band.addColorStop(0.5,"rgba(255,241,214,0.42)");
-      band.addColorStop(1,"rgba(255,236,200,0)");
-      x.fillStyle = band; x.fillRect(0,175,1024,80);   // horizon strip light
-
-      blob(300,140,255,115,"#fff8ec",0.85);   // key softbox
-      blob(300,140,95,48,  "#ffffff",0.60);   // hot core — small, or the metal blows out
-      blob(770,120,190,95, "#ffeccb",0.80);   // secondary
-      blob(90, 210,130,160,"#ffdaa4",0.45);   // rim
-      blob(540,340,320,130,"#8a6c40",0.55);   // warm bounce off the floor
-
-      const t = new THREE.CanvasTexture(c);
-      t.mapping = THREE.EquirectangularReflectionMapping;
-      t.encoding = THREE.sRGBEncoding;
-      return t;
-    }
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    pmrem.compileEquirectangularShader();
-    const envTex = envTexture();
-    scene.environment = pmrem.fromEquirectangular(envTex).texture;
-    envTex.dispose(); pmrem.dispose();
-
-    /* ------------------------------------------------- relief textures --- */
-    function arcText(x, text, r, centre, spread, size, flip){
-      x.save();
-      x.font = "700 " + size + "px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
-      x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#f2f2f2";
-      const n = text.length;
-      for(let i=0;i<n;i++){
-        const f = n === 1 ? 0.5 : i/(n-1);
-        x.save();
-        x.rotate(centre + (f-0.5)*spread);
-        x.translate(0, flip ? r : -r);
-        if(flip) x.rotate(Math.PI);
-        x.fillText(text[i], 0, 0);
-        x.restore();
-      }
-      x.restore();
-    }
-
-    /* Grayscale height field: mid grey is flat, lighter is raised. */
-    function faceTexture(){
-      const S = 1024, c = document.createElement("canvas"); c.width = c.height = S;
-      const x = c.getContext("2d"), R = S/2;
-      x.fillStyle = "#808080"; x.fillRect(0,0,S,S);
-      x.translate(R,R);
-
-      x.beginPath(); x.arc(0,0,R*0.90,0,7); x.fillStyle="#6b6b6b"; x.fill();   // sunken field
-      x.lineWidth = S*0.011; x.strokeStyle = "#dedede";                         // inner ring
-      x.beginPath(); x.arc(0,0,R*0.795,0,7); x.stroke();
-      for(let i=0;i<76;i++){                                                    // bead ring
-        const a = i/76*Math.PI*2;
-        x.beginPath(); x.arc(Math.cos(a)*R*0.865, Math.sin(a)*R*0.865, S*0.0075, 0, 7);
-        x.fillStyle = "#ededed"; x.fill();
-      }
-
-      // brand mark: the same two candles as the favicon, struck in relief
-      const u = S*0.0125;
-      x.strokeStyle = "#f4f4f4"; x.lineCap = "butt";
-      x.lineWidth = u*1.5;
-      x.beginPath(); x.moveTo(-u*7, -u*10); x.lineTo(-u*7, u*9); x.stroke();    // wick
-      x.fillStyle = "#f4f4f4";
-      x.fillRect(-u*10.5, -u*5.5, u*7, u*13);                                   // solid body
-      x.lineWidth = u*1.5;
-      x.beginPath(); x.moveTo(u*7, -u*8); x.lineTo(u*7, u*11); x.stroke();      // wick
-      x.lineWidth = u*1.3;                                                      // hollow body
-      x.strokeRect(u*3.6, -u*2.5, u*7, u*11);
-
-      /* no lettering on the face — just the rings, beads and the struck mark */
-
-      x.setTransform(1,0,0,1,0,0);                 // a little tooth on the field
-      for(let i=0;i<2600;i++){
-        const a = Math.random()*Math.PI*2, r = Math.sqrt(Math.random())*R*0.96;
-        x.fillStyle = "rgba(" + (Math.random()<0.5?"255,255,255":"0,0,0") + ","
-                    + (0.03 + Math.random()*0.05) + ")";
-        x.fillRect(R + Math.cos(a)*r, R + Math.sin(a)*r, 1.6, 1.6);
-      }
-
-      const t = new THREE.CanvasTexture(c);
-      t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      return t;
-    }
-
-    /* Struck metal is never optically smooth. Die-polish rings, stray
-       scratches and fine speckle break the highlight up — without this the
-       coin reads as clean CG plastic, however good the lighting is. */
-    function microTexture(){
-      const S = 512, c = document.createElement("canvas"); c.width = c.height = S;
-      const x = c.getContext("2d");
-      x.fillStyle = "#8c8c8c"; x.fillRect(0,0,S,S);
-      x.save(); x.translate(S/2, S/2);
-
-      for(let i=0;i<230;i++){                       // die-polish rings
-        x.beginPath(); x.arc(0, 0, Math.random()*S*0.52, 0, Math.PI*2);
-        x.strokeStyle = "rgba(255,255,255," + (0.015 + Math.random()*0.03) + ")";
-        x.lineWidth = 0.4 + Math.random()*0.9; x.stroke();
-      }
-      for(let i=0;i<150;i++){                       // handling scratches
-        x.save(); x.rotate(Math.random()*Math.PI*2);
-        const r0 = Math.random()*S*0.5, len = 8 + Math.random()*70;
-        x.beginPath(); x.moveTo(r0,0); x.lineTo(r0+len, 0);
-        x.strokeStyle = "rgba(0,0,0," + (0.03 + Math.random()*0.06) + ")";
-        x.lineWidth = 0.5 + Math.random()*1.1; x.stroke(); x.restore();
-      }
-      x.restore();
-
-      const img = x.getImageData(0,0,S,S), d = img.data;   // fine speckle
-      for(let i=0;i<d.length;i+=4){
-        const n = (Math.random()-0.5)*22;
-        d[i] += n; d[i+1] += n; d[i+2] += n;
-      }
-      x.putImageData(img, 0, 0);
-      return new THREE.CanvasTexture(c);
-    }
-
-    function reedTexture(){                       // milled edge
-      const w = 2048, h = 8;
-      const c = document.createElement("canvas"); c.width = w; c.height = h;
-      const x = c.getContext("2d");
-      for(let i=0;i<w;i++){
-        const v = 0.5 + 0.5*Math.sin(i/w*Math.PI*2*180);
-        const g = Math.round(70 + v*130);
-        x.fillStyle = "rgb("+g+","+g+","+g+")";
-        x.fillRect(i,0,1,h);
-      }
-      const t = new THREE.CanvasTexture(c);
-      t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      return t;
-    }
-
-    /* -------------------------------------------------------- the coin --- */
-    const GOLD = { color:0xffc673, metalness:1.0, envMapIntensity:1.85 };
-    // Both cylinder caps present their UVs mirrored when seen from outside, so
-    // struck lettering reads back-to-front on either face unless the texture is
-    // flipped once and used for both.
-    const faceTex = faceTexture();
-    faceTex.wrapS = THREE.RepeatWrapping;
-    faceTex.repeat.x = -1;
-    faceTex.offset.x = 1;
-
-    const faceMat = new THREE.MeshStandardMaterial(
-      Object.assign({}, GOLD, {roughness:0.22, bumpMap:faceTex, bumpScale:0.022}));
-    const edgeMat = new THREE.MeshStandardMaterial(
-      Object.assign({}, GOLD, {roughness:0.27, bumpMap:reedTexture(), bumpScale:0.007}));
-
-    // roughnessMap scales the material roughness per-texel, so the highlight
-    // wanders across the surface instead of sitting on it like glass
-    const micro = microTexture();
-    faceMat.roughnessMap = micro; faceMat.roughness = 0.44;
-    const edgeMicro = micro.clone();
-    edgeMicro.wrapS = edgeMicro.wrapT = THREE.RepeatWrapping;
-    edgeMicro.repeat.set(14, 1);
-    edgeMat.roughnessMap = edgeMicro; edgeMat.roughness = 0.52;
-
-    const coin = new THREE.Mesh(
-      new THREE.CylinderGeometry(1, 1, 0.135, 220, 1, false),
-      [edgeMat, faceMat, faceMat]);                 // cylinder groups: side, top, bottom
-    const pivot = new THREE.Group();
-    pivot.add(coin); scene.add(pivot);
-
-    scene.add(new THREE.DirectionalLight(0xfff2dc, 2.1).translateX(3).translateY(4).translateZ(5));
-    const rim = new THREE.DirectionalLight(0xffd7a0, 1.25);
-    rim.position.set(-4,-1.5,-3); scene.add(rim);
-
-    /* ---------------------------------------------------------- motion --- */
-    const AY = new THREE.Vector3(0,1,0), AZ = new THREE.Vector3(0,0,1);
-    const qP = new THREE.Quaternion(), qL = new THREE.Quaternion(), qS = new THREE.Quaternion();
-    function pose(t){
-      const spin = t * 2.30;                                  // roll about its own axis
-      const prec = t * 0.55;                                  // face swings past the viewer
-      const lean = 0.19*Math.sin(t*1.45) + 0.055*Math.sin(t*0.63);   // the wobble
-      qP.setFromAxisAngle(AY, prec);
-      qL.setFromAxisAngle(AZ, Math.PI/2 - lean);              // stand it on edge, then lean
-      qS.setFromAxisAngle(AY, spin);
-      coin.quaternion.copy(qP).multiply(qL).multiply(qS);
-      pivot.position.y = Math.sin(t*1.05)*0.045;
-      pivot.rotation.z = Math.sin(t*0.80)*0.022;
-    }
-
-    /* ------------------------------------------------------ reflection --- */
-    /* A mirrored copy of the rendered frame, drawn into a 2D canvas at half
-       resolution (cheaper, and the upscale is part of the softness), faded out
-       by a CSS mask. The mirror line is the projected bottom of the coin, so
-       the reflection meets it exactly rather than at a guessed offset. */
-    const refl = document.getElementById("coinRefl");
-    const rctx = refl ? refl.getContext("2d") : null;
-    const REFL_DEPTH = 0.52;                       // how far the mirror carries
-    let mirrorY = 0.78;                            // fraction of frame height
-
-    function drawReflection(){
-      if(!rctx) return;
-      const src = renderer.domElement;
-      rctx.clearRect(0, 0, refl.width, refl.height);
-      rctx.save();
-      rctx.setTransform(0.5, 0, 0, -0.5, 0, mirrorY * src.height * 0.5);
-      rctx.drawImage(src, 0, 0);
-      rctx.restore();
-    }
-
-    /* ----------------------------------------------------------- frame --- */
-    const BOTTOM = new THREE.Vector3();
-    function size(){
-      const r = host.getBoundingClientRect();
-      const w = Math.max(140, r.width), h = Math.max(140, r.height);
-      renderer.setSize(w, h, false);
-      camera.aspect = w/h; camera.updateProjectionMatrix();
-
-      // where the coin's lowest point lands on screen, as a 0..1 fraction
-      BOTTOM.set(0, -1, 0).project(camera);
-      mirrorY = (1 - BOTTOM.y) / 2;
-
-      if(refl){
-        const dpr = renderer.getPixelRatio();
-        refl.width  = Math.round(w * dpr * 0.5);
-        refl.height = Math.round(h * dpr * 0.5 * REFL_DEPTH);
-        refl.style.insetBlockStart = (mirrorY * 100).toFixed(2) + "%";
-      }
-    }
-    new ResizeObserver(size).observe(host); size();
-
-    let onScreen = true;
-    new IntersectionObserver(es => { onScreen = es[0].isIntersecting; }, {threshold:0})
-      .observe(host);
-
-    // Paint one frame straight away. Without this, a page opened in a
-    // background tab shows an empty stage until it is first focused, because
-    // requestAnimationFrame does not run while the document is hidden.
-    pose(2.9);
-    renderer.render(scene, camera);
-    drawReflection();
-    if(reduce) return;                              // held still, by preference
-
-    const t0 = performance.now();
-    (function frame(now){
-      requestAnimationFrame(frame);
-      if(!onScreen || document.hidden) return;      // don't burn GPU off-screen
-      pose((now - t0)/1000);
-      renderer.render(scene, camera);
-      drawReflection();
-    })(t0);
-  }catch(err){ console.error("[coin]", err); }   // hero must never break the page
-  });
-})();
-</script>
-
-<script>
-"use strict";
-/* ===========================================================================
-   BazarPeech — scroll-driven XAU/USD chart.
-
-   The animation is a PURE FUNCTION of scroll progress p ∈ [0,3]:
-   everything geometric (candles, camera, zoom, boxes) is derived from p alone,
-   with no frame-to-frame state, so it scrubs backwards as cleanly as forwards.
-
-   The three impact moments — target flash, badge, outcome marks — are the
-   deliberate exception. They run on their own clock once armed, because an
-   effect you drag through with a trackpad reads as dead. They re-arm if you
-   scroll back past their trigger.
-   ========================================================================= */
-
-/* ------------------------------- CONFIG --------------------------------- */
-const CFG = {
-  symbol: "XAU/USD",
-  market: "SPOT GOLD",
-
-  rgb: {
-    gold:     "228,190,125",
-    goldDeep: "154,118,58",
-    pearl:    "233,229,221",
-    pearlDim: "125,119,110",
-    text:     "239,234,225",
-    dim:      "110,103,94",
-    plate:    "13,12,11",
-  },
-  color: { bg: "#0b0a09" },
-
-  candle: { bodyRatio: 0.62, maxBody: 24, minBody: 1, wick: 1.2, grow: 1.0 },
-  cam:    { liveSpan: 34, anchor: 0.54, anchorWide: 0.57, pricePad: 0.30, macroSpan: 240 },
-  trade:  {
-    count: 11, rr: 2.4, riskPct: 0.019,
-    path:     [-0.13, -0.24, 0.07, 0.33, 0.21, 0.61, 1.0],
-    lossPath: [0.20, 0.07, 0.34, 0.13, -0.09, -0.27],
-    losers:   [7, 10],
-    retraceFloor: -0.33,
-  },
-  layout: { padT: 42, padB: 24, padL: 22, padR: 22 },
-  lead:   24,                 // candles of history played out in section 1
-
-  /* where each beat's events sit inside its own 0..1 range */
-  beat: {
-    gen:      [0.00, 0.30],   // §1 candles generating
-    arm:      [0.26, 0.56],   // §1 position tool draws in
-    push:     [0.00, 0.48],   // §2 the leg to target
-    zoom:     [0.03, 0.40],   // §3 pull back
-    marks:    [0.36, 0.52],   // §3 ticks and crosses arm
-  },
-  fx: { flash: 1.05, badge: 0.55, mark: 0.5, markStagger: 0.075 },
-};
-
-/* -------------------------------- UTIL ---------------------------------- */
-const clamp = (v,a,b)=>v<a?a:v>b?b:v;
-const lerp  = (a,b,t)=>a+(b-a)*t;
-const inv   = (v,a,b)=>clamp((v-a)/(b-a),0,1);       // normalise into a range
-const easeOutCubic   = t=>1-Math.pow(1-t,3);
-const easeInOutCubic = t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-const easeOutBack    = t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
-const rgba  = (t,a)=>`rgba(${t},${a})`;
-const T     = ()=>CFG.rgb;
-const now   = ()=>performance.now()/1000;
-
-function makeRng(seed){
-  let s=seed>>>0;
-  return ()=>{s^=s<<13;s>>>=0;s^=s>>17;s^=s<<5;s>>>=0;return s/4294967296;};
-}
-
-/* ------------------------------ DATASET --------------------------------- */
-function buildDataset(seed){
-  const rng=makeRng(seed), candles=[], trades=[];
-  let price=100;
-  const vol=()=>price*0.0062;
-
-  function pushNoise(n,drift){
-    for(let k=0;k<n;k++){
-      const o=price,v=vol(),d=drift+(100-price)*0.0006;
-      const c=o+(rng()-0.5+d)*v*2.3;
-      candles.push({o,c,h:Math.max(o,c)+rng()*v*0.9,l:Math.min(o,c)-rng()*v*0.9});
-      price=c;
-    }
-  }
-  function pushTrade(dir,won){
-    const v=vol(),o=price;
-    const c=dir==="long"?o+v*2.1:o-v*2.1;
-    candles.push({o,c,h:Math.max(o,c)+v*0.45,l:Math.min(o,c)-v*0.45});
-    price=c;
-
-    const entryIndex=candles.length-1, entry=c;
-    const risk=entry*CFG.trade.riskPct;
-    const tp=dir==="long"?entry+risk*CFG.trade.rr:entry-risk*CFG.trade.rr;
-    const sl=dir==="long"?entry-risk:entry+risk;
-
-    const total=tp-entry, fStop=-1/CFG.trade.rr;
-    const seq=won?CFG.trade.path:CFG.trade.lossPath.concat([fStop]);
-    const floor=won?CFG.trade.retraceFloor:fStop+0.05;
-    const at=f=>entry+total*f;
-    let fPrev=0;
-    for(let k=0;k<seq.length;k++){
-      const last=k===seq.length-1;
-      const fc=last?(won?1:fStop)
-                   :clamp(seq[k]+(rng()-0.5)*0.07,floor,won?0.94:0.78);
-      const fo=fPrev, over=0.05+rng()*0.06;
-      let fh=Math.max(fo,fc)+over;
-      let fl=Math.min(fo,fc)-over*(fc<fo?1.4:0.7);
-      fl=Math.max(fl,floor-0.04);
-      if(!won) fh=Math.min(fh,0.86);
-      if(last&&won)  fh=Math.max(fh,1.012);
-      if(last&&!won) fl=Math.min(fl,fStop-0.03);
-      const a=at(fh),b=at(fl);
-      candles.push({o:at(fo),c:at(fc),h:Math.max(a,b),l:Math.min(a,b)});
-      fPrev=fc; price=at(fc);
-    }
-    trades.push({dir,won,entry,tp,sl,entryIndex,exitIndex:candles.length-1,rr:CFG.trade.rr});
-  }
-
-  pushNoise(26,0.04);
-  for(let t=0;t<CFG.trade.count;t++){
-    const dir=rng()>0.34?"long":"short";
-    pushNoise(18+Math.floor(rng()*13),(rng()-0.45)*0.22);
-    pushTrade(dir,CFG.trade.losers.indexOf(t)===-1);
-    pushNoise(6+Math.floor(rng()*6),dir==="long"?-0.12:0.12);
-  }
-  pushNoise(20,0.05);
-  pushTrade("long",true);
-  return {candles,trades,featured:trades[trades.length-1]};
-}
-
-const DATA = buildDataset(20260904);
-const startIndex = ()=>Math.max(0, DATA.featured.entryIndex - CFG.lead);
-
-/* ------------------------------- CANVAS --------------------------------- */
-const frame  = document.getElementById("chartFrame");
-const canvas = document.getElementById("chart");
-const ctx    = canvas.getContext("2d",{alpha:false});
-let W=0,H=0,plot={x:0,y:0,w:0,h:0},ui=1,wide=true,scrim=null,hud={x:0,w:0};
-
-function resize(){
-  const r=frame.getBoundingClientRect();
-  const dpr=Math.min(window.devicePixelRatio||1,2);
-  W=Math.max(280,r.width); H=Math.max(200,r.height);
-  canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  const L=CFG.layout;
-  wide=W>=900;
-  plot={x:L.padL,y:L.padT,w:W-L.padL-L.padR,h:H-L.padT-L.padB};
-  ui=clamp(W/1250,0.85,1.25);
-  /* Where the copy sits, so the chart can be dimmed behind it rather than
-     cropped away from it — the price action still runs the full width. */
-  scrim = wide ? {x:W*0.24, y:H*0.50, rx:W*0.46, ry:H*0.70}
-               : {x:W*0.50, y:H*0.76, rx:W*0.98, ry:H*0.44};
-  // the HUD lines up with the page gutter, not the canvas edge
-  const gutter=clamp(W*0.05,20,64), shellW=Math.min(1240,W-2*gutter);
-  hud={x:(W-shellW)/2, w:shellW};
-  dirty=true;
-}
-new ResizeObserver(resize).observe(frame);
-const fs=(px,weight)=>`${weight||500} ${(px*ui).toFixed(1)}px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif`;
-
-/* --------------------------- SCENE FROM SCROLL --------------------------- */
-/* Everything below is derived from p — no accumulated state anywhere. */
-function stateAt(p){
-  const f=DATA.featured, B=CFG.beat;
-  let revealed, overlay=0, zoom=0, marks=0, macro=0;
-
-  if(p<1){
-    revealed = lerp(startIndex(), f.entryIndex+1, easeOutCubic(inv(p,B.gen[0],B.gen[1])));
-    overlay  = easeOutCubic(inv(p,B.arm[0],B.arm[1]));
-  } else if(p<2){
-    const t=p-1;
-    revealed = lerp(f.entryIndex+1, f.exitIndex+1, easeInOutCubic(inv(t,B.push[0],B.push[1])));
-    overlay  = 1;
-  } else {
-    const t=clamp(p-2,0,1);
-    revealed = f.exitIndex+1;
-    zoom     = easeInOutCubic(inv(t,B.zoom[0],B.zoom[1]));
-    overlay  = 1-inv(t,B.zoom[0],B.zoom[0]+0.14);   // tool dissolves as we pull back
-    marks    = inv(t,B.marks[0],B.marks[1]);
-    macro    = inv(t,0,0.03);                       // setups exist before the pull-back
-  }
-  return {p,revealed,overlay,zoom,marks,macro};
-}
-
-/* Price range over a FRACTIONAL window. Weighting the partially-visible edge
-   candles is what keeps the vertical scale continuous while scrubbing — an
-   integer window would step every time a candle entered or left. */
-function rangeOver(a,b,revealed,extra){
-  let min=Infinity,max=-Infinity;
-  const i0=Math.max(0,Math.floor(a));
-  const i1=Math.min(DATA.candles.length-1,Math.ceil(b));
-  for(let i=i0;i<=i1;i++){
-    let cov=clamp(Math.min(i+1,b)-Math.max(i,a),0,1);
-    cov*=clamp(revealed-i,0,1);                     // and the newest candle grows in
-    if(cov<=0.001) continue;
-    const c=DATA.candles[i],mid=(c.h+c.l)/2;
-    const h=lerp(mid,c.h,cov),l=lerp(mid,c.l,cov);
-    if(h>max)max=h; if(l<min)min=l;
-  }
-  if(extra) for(const v of extra){ if(v<min)min=v; if(v>max)max=v; }
-  if(!isFinite(min)){min=99;max=101;}
-  const pad=(max-min)*CFG.cam.pricePad+1e-4;
-  return {min:min-pad,max:max+pad};
-}
-
-function liveCam(revealed,overlay){
-  const span=CFG.cam.liveSpan;
-  const i=(revealed-1)-span*((wide?CFG.cam.anchorWide:CFG.cam.anchor)-0.5);
-  const a=i-span/2,b=i+span/2;
-  const r=rangeOver(a,b,revealed,null);
-  let min=r.min,max=r.max;
-  if(overlay>0){                                    // blend the levels in, don't snap
-    const f=DATA.featured;
-    const r2=rangeOver(a,b,revealed,[f.tp,f.sl]);
-    min=lerp(min,r2.min,overlay); max=lerp(max,r2.max,overlay);
-  }
-  return {i,span,p:(min+max)/2,pspan:max-min};
-}
-
-function macroCam(){
-  const n=DATA.candles.length,last=n-1;
-  const span=Math.min(n*1.06,CFG.cam.macroSpan);
-  const i=last-span/2+span*0.07;
-  const r=rangeOver(i-span/2,i+span/2,n,null);
-  return {i,span,p:(r.min+r.max)/2,pspan:(r.max-r.min)*1.02};
-}
-
-function cameraFor(sc){
-  // NOT a boolean: liveCam blends the target and stop into the price range by
-  // this amount. Passing 1/0 snapped the vertical scale open the instant the
-  // position appeared — that was the jolt between scanning and armed.
-  const live=liveCam(sc.revealed,sc.overlay);
-  if(sc.zoom<=0) return live;
-  const m=macroCam();
-  return {
-    i:lerp(live.i,m.i,sc.zoom),
-    p:lerp(live.p,m.p,sc.zoom),
-    span :Math.exp(lerp(Math.log(live.span ),Math.log(m.span ),sc.zoom)),
-    pspan:Math.exp(lerp(Math.log(live.pspan),Math.log(m.pspan),sc.zoom)),
-  };
-}
-
-let cam={i:0,span:34,p:100,pspan:10};
-const cw=()=>plot.w/cam.span;
-const X =i=>plot.x+plot.w/2+(i-cam.i)*cw();
-const Y =p=>plot.y+plot.h/2-(p-cam.p)*(plot.h/cam.pspan);
-
-/* ------------------------------ IMPACT FX -------------------------------- */
-/* Armed by scroll, played on their own clock, re-armed when scrolled back. */
-const FX={hitAt:null,marksAt:null};
-function updateFX(sc){
-  const f=DATA.featured;
-  const hit = sc.p>=1 && sc.revealed>=f.exitIndex+0.92;
-  if(hit && FX.hitAt===null) FX.hitAt=now();
-  if(!hit) FX.hitAt=null;
-
-  if(sc.marks>0 && FX.marksAt===null) FX.marksAt=now();
-  if(sc.marks<=0) FX.marksAt=null;
-
-  const flash = FX.hitAt===null?0:clamp((now()-FX.hitAt)/CFG.fx.flash,0,1);
-  const badge = FX.hitAt===null?0:clamp((now()-FX.hitAt)/CFG.fx.badge,0,1);
-  const busy  = (FX.hitAt!==null && flash<1) || (FX.marksAt!==null && now()-FX.marksAt<1.6);
-  return {flash,badge,busy};
-}
-
-/* -------------------------------- DRAW ----------------------------------- */
-function draw(sc,fx){
-  cam=cameraFor(sc);
-  ctx.fillStyle=CFG.color.bg; ctx.fillRect(0,0,W,H);
-
-  drawHistoric(sc);
-  drawCandles(sc);
-
-  // detailed tool until the pull-back hands over to the compact marker
-  if(sc.overlay>0) drawTool(DATA.featured,sc.overlay);
-
-  const after = 1-clamp(sc.zoom/0.35,0,1);       // flash + badge fade as we pull back
-  if(fx.flash>0 && after>0) drawFlash(fx.flash,after);
-  if(fx.badge>0 && after>0) drawBadge(fx.badge,after);
-  if(sc.marks>0) drawMarks(sc);
-
-  drawScrim();
-  drawHud(sc,fx);
-  vignette();
-}
-
-function drawCandles(sc){
-  const w=cw(), R=sc.revealed;
-  const first=clamp(Math.floor(cam.i-cam.span/2)-1,0,DATA.candles.length-1);
-  const last =clamp(Math.ceil (cam.i+cam.span/2)+1,0,Math.ceil(R)-1);
-  const bodyW=clamp(w*CFG.candle.bodyRatio,CFG.candle.minBody,CFG.candle.maxBody);
-  const thin=w<2.4, head=Math.ceil(R)-1, live=sc.zoom<0.2;
-
-  for(let i=first;i<=last;i++){
-    const c=DATA.candles[i];
-    const g=clamp(R-i,0,1);                       // growth is a function of p, not time
-    if(g<=0) continue;
-    const e=easeOutCubic(g);
-    const o=c.o, h=lerp(o,c.h,e), l=lerp(o,c.l,e), cl=lerp(o,c.c,e);
-
-    const up=cl>=o, x=X(i);
-    if(x<plot.x-40||x>plot.x+plot.w+40) continue;
-
-    /* Gold advances, pearl retreats. Both are light on dark, so hue alone is a
-       weak signal — bullish bodies are solid, bearish hollow. */
-    const tone=up?T().gold:T().pearl;
-    const isHead=i===head&&live&&g<1.0;
-    if(isHead){ctx.shadowColor=rgba(tone,0.5);ctx.shadowBlur=12;}
-
-    if(thin){
-      ctx.strokeStyle=rgba(up?T().goldDeep:T().pearlDim,0.9);
-      ctx.lineWidth=Math.max(1,w*0.7);
-      ctx.beginPath();ctx.moveTo(x,Y(h));ctx.lineTo(x,Y(l));ctx.stroke();
-      ctx.strokeStyle=rgba(tone,up?1:0.72);
-      ctx.beginPath();ctx.moveTo(x,Y(Math.max(o,cl)));ctx.lineTo(x,Y(Math.min(o,cl)));ctx.stroke();
-    } else {
-      ctx.strokeStyle=rgba(tone,up?0.95:0.86); ctx.lineWidth=CFG.candle.wick;
-      ctx.beginPath();ctx.moveTo(x,Y(h));ctx.lineTo(x,Y(l));ctx.stroke();
-      const yT=Y(Math.max(o,cl)),yB=Y(Math.min(o,cl)),bh=Math.max(1,yB-yT);
-      if(up){
-        ctx.fillStyle=rgba(tone,1); ctx.fillRect(x-bodyW/2,yT,bodyW,bh);
-      } else if(bh<=1.6||bodyW<5){
-        ctx.fillStyle=rgba(tone,0.86); ctx.fillRect(x-bodyW/2,yT,bodyW,bh);
-      } else {
-        ctx.fillStyle=CFG.color.bg;    ctx.fillRect(x-bodyW/2,yT,bodyW,bh);
-        ctx.fillStyle=rgba(tone,0.10); ctx.fillRect(x-bodyW/2,yT,bodyW,bh);
-        ctx.strokeStyle=rgba(tone,0.92); ctx.lineWidth=1.1;
-        ctx.strokeRect(x-bodyW/2+0.55,yT+0.55,bodyW-1.1,bh-1.1);
-      }
-    }
-    if(isHead) ctx.shadowBlur=0;
-  }
-}
-
-function drawTool(t,a){
-  const grow=easeInOutCubic(a), alpha=easeOutCubic(clamp(a*1.15,0,1));
-  const x0=X(t.entryIndex+0.9), x1=lerp(x0,X(t.exitIndex+6),grow);
-  const yE=Y(t.entry),yT=Y(t.tp),yS=Y(t.sl);
-
-  ctx.save(); ctx.globalAlpha=alpha;
-  ctx.fillStyle=rgba(T().gold,0.085);  ctx.fillRect(x0,Math.min(yE,yT),x1-x0,Math.abs(yE-yT));
-  ctx.fillStyle=rgba(T().pearl,0.06);  ctx.fillRect(x0,Math.min(yE,yS),x1-x0,Math.abs(yE-yS));
-
-  const line=(y,col,dash,wd)=>{ctx.save();ctx.setLineDash(dash);ctx.lineWidth=wd;ctx.strokeStyle=col;
-    ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x1,y);ctx.stroke();ctx.restore();};
-  line(yT,rgba(T().gold,0.8),[],1);
-  line(yS,rgba(T().pearl,0.28),[],1);
-  line(yE,rgba(T().dim,0.85),[3,5],1);
-
-  label(x0+12,yT,"TARGET",rgba(T().gold,1),     rgba(T().gold,0.34));
-  label(x0+12,yE,"ENTRY", rgba(T().text,0.72),  rgba(T().dim,0.55));
-  label(x0+12,yS,"STOP",  rgba(T().pearl,0.78), rgba(T().pearl,0.22));
-  ctx.restore();
-}
-
-function drawHistoric(sc){
-  if(sc.macro<=0) return;
-  const n=DATA.trades.length, handed=sc.zoom>0.12;
-  for(let k=0;k<n;k++){
-    const t=DATA.trades[k];
-    if(t===DATA.featured && !handed) continue;     // the tool is still drawing it
-    const stg=clamp((sc.macro-(k/n)*0.5)/0.5,0,1);
-    if(stg<=0) continue;
-    const x0=X(t.entryIndex-0.5),x1=X(t.exitIndex+1.2);
-    if(x1<plot.x-20||x0>plot.x+plot.w+20) continue;
-    const yE=Y(t.entry),yT=Y(t.tp),yS=Y(t.sl);
-
-    ctx.save(); ctx.globalAlpha=easeOutCubic(stg);
-    ctx.fillStyle=rgba(T().gold,0.10);  ctx.fillRect(x0,Math.min(yE,yT),x1-x0,Math.abs(yE-yT));
-    ctx.fillStyle=rgba(T().pearl,0.045);ctx.fillRect(x0,Math.min(yE,yS),x1-x0,Math.abs(yE-yS));
-
-    const yX=t.won?yT:yS, tone=t.won?T().gold:T().pearlDim;
-    ctx.strokeStyle=rgba(tone,t.won?0.6:0.4); ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(x0,yX);ctx.lineTo(x1,yX);ctx.stroke();
-    ctx.setLineDash([2,4]); ctx.strokeStyle=rgba(tone,t.won?0.45:0.3);
-    ctx.beginPath();ctx.moveTo(x0,yE);ctx.lineTo(x1,yX);ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-  }
-}
-
-function drawFlash(f,mul){
-  const t=DATA.featured, gold=T().gold;
-  const x=X(t.exitIndex), y=Y(t.tp), decay=Math.exp(-3.2*f)*mul;
-  ctx.save(); ctx.globalAlpha*=mul;
-
-  const g=ctx.createLinearGradient(plot.x,0,plot.x+plot.w,0);
-  g.addColorStop(0,rgba(gold,0)); g.addColorStop(.5,rgba(gold,0.18*decay)); g.addColorStop(1,rgba(gold,0));
-  ctx.fillStyle=g; ctx.fillRect(plot.x,y-22,plot.w,44);
-
-  const r=26+165*easeOutCubic(clamp(f*1.2,0,1));
-  const rg=ctx.createRadialGradient(x,y,0,x,y,r);
-  rg.addColorStop(0,rgba(gold,0.30*decay)); rg.addColorStop(.5,rgba(gold,0.10*decay)); rg.addColorStop(1,rgba(gold,0));
-  ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-
-  ctx.strokeStyle=rgba(gold,0.30*decay); ctx.lineWidth=1;
-  ctx.beginPath(); ctx.arc(x,y,10+96*easeOutCubic(clamp(f*1.4,0,1)),0,Math.PI*2); ctx.stroke();
-
-  ctx.strokeStyle=rgba(gold,0.55+0.35*decay);
-  ctx.shadowColor=rgba(gold,0.8); ctx.shadowBlur=12*decay+3; ctx.lineWidth=1.2;
-  ctx.beginPath(); ctx.moveTo(plot.x,y); ctx.lineTo(plot.x+plot.w,y); ctx.stroke();
-  ctx.restore();
-}
-
-function drawBadge(b,mul){
-  const t=DATA.featured, s=easeOutBack(clamp(b,0,1));
-  const x=X(t.exitIndex), y=Y(t.tp)-42*ui+(1-easeOutCubic(b))*16;
-  const text="TARGET REACHED";
-  ctx.save(); ctx.globalAlpha=clamp(b,0,1)*mul;
-  ctx.translate(x,y); ctx.scale(s,s);
-  ctx.font=fs(10.5,600);
-  if("letterSpacing" in ctx) ctx.letterSpacing="2.2px";
-  const w=ctx.measureText(text).width+30*ui, h=27*ui;
-  ctx.shadowColor=rgba(T().gold,0.30); ctx.shadowBlur=18;
-  ctx.fillStyle=rgba(T().plate,0.94); roundRect(-w/2,-h/2,w,h,h/2); ctx.fill();
-  ctx.shadowBlur=0;
-  ctx.strokeStyle=rgba(T().gold,0.45); ctx.lineWidth=1; roundRect(-w/2,-h/2,w,h,h/2); ctx.stroke();
-  ctx.fillStyle=rgba(T().gold,1); ctx.textBaseline="middle"; ctx.textAlign="center";
-  ctx.fillText(text,1,0.5);
-  if("letterSpacing" in ctx) ctx.letterSpacing="0px";
-  ctx.restore();
-}
-
-function drawMarks(sc){
-  if(FX.marksAt===null) return;
-  const el=now()-FX.marksAt, n=DATA.trades.length;
-  for(let k=0;k<n;k++){
-    const t=DATA.trades[k];
-    const p=clamp((el-k*CFG.fx.markStagger)/CFG.fx.mark,0,1);
-    if(p<=0) continue;
-    const x=X((t.entryIndex+t.exitIndex)/2), y=Math.min(Y(t.tp),Y(t.sl))-20*ui;
-    if(x<plot.x-30||x>plot.x+plot.w+30) continue;
-
-    const win=t.won, accent=win?T().gold:T().pearlDim;   // a loss is stated, not alarmed about
-    const s=easeOutBack(p)*ui;
-    ctx.save(); ctx.globalAlpha=clamp(p*1.5,0,1)*clamp(sc.marks*2,0,1);
-    ctx.translate(x,y); ctx.scale(s,s);
-    if(win){ctx.shadowColor=rgba(accent,0.45);ctx.shadowBlur=9;}
-    ctx.fillStyle=rgba(T().plate,0.95);
-    ctx.beginPath();ctx.arc(0,0,8.5,0,Math.PI*2);ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.strokeStyle=rgba(accent,win?0.55:0.4); ctx.lineWidth=1; ctx.stroke();
-    ctx.strokeStyle=rgba(accent,win?1:0.75);
-    ctx.lineWidth=1.6; ctx.lineCap="round"; ctx.lineJoin="round";
-    ctx.beginPath();
-    if(win){ctx.moveTo(-4,0.2);ctx.lineTo(-1.2,3.2);ctx.lineTo(4.3,-3.4);}
-    else   {ctx.moveTo(-3.1,-3.1);ctx.lineTo(3.1,3.1);ctx.moveTo(3.1,-3.1);ctx.lineTo(-3.1,3.1);}
-    ctx.stroke(); ctx.restore();
-  }
-}
-
-function drawHud(sc,fx){
-  let caption="SCANNING", hot=false;
-  if(sc.p>=2)                      caption="SESSION REVIEW";
-  else if(fx.badge>0){             caption="TARGET REACHED"; hot=true; }
-  else if(sc.p>=1)                 caption="IN TRADE";
-  else if(sc.overlay>0.15)         caption="LONG POSITION ARMED";
-
-  ctx.save(); ctx.textBaseline="middle"; ctx.textAlign="left";
-  ctx.font=fs(13.5); if("letterSpacing" in ctx) ctx.letterSpacing="0.4px";
-  ctx.fillStyle=rgba(T().text,0.92);
-  ctx.fillText(CFG.symbol,hud.x,19*ui);
-
-  ctx.font=fs(8.5); if("letterSpacing" in ctx) ctx.letterSpacing="2.4px";
-  ctx.fillStyle=rgba(T().dim,0.95);
-  ctx.fillText(CFG.market,hud.x+1,33*ui);
-
-  ctx.textAlign="right";
-  ctx.fillStyle=hot?rgba(T().gold,0.95):rgba(T().dim,0.95);
-  ctx.fillText(caption,hud.x+hud.w,19*ui);
-  const cwid=ctx.measureText(caption).width;
-  ctx.globalAlpha=hot?0.5:0.22;
-  ctx.fillStyle=hot?rgba(T().gold,1):rgba(T().dim,1);
-  ctx.fillRect(hud.x+hud.w-cwid,28*ui,cwid,1);
-  if("letterSpacing" in ctx) ctx.letterSpacing="0px";
-  ctx.restore();
-}
-
-/* An elliptical wash under the copy. Candles pass behind it and fade out
-   rather than being cut off, so the chart still reads as full-bleed. */
-function drawScrim(){
-  if(!scrim) return;
-  ctx.save();
-  ctx.translate(scrim.x,scrim.y); ctx.scale(scrim.rx/100,scrim.ry/100);
-  const g=ctx.createRadialGradient(0,0,0,0,0,100);
-  g.addColorStop(0,   "rgba(11,10,9,0.94)");
-  g.addColorStop(0.55,"rgba(11,10,9,0.80)");
-  g.addColorStop(1,   "rgba(11,10,9,0)");
-  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,100,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-}
-
-function vignette(){
-  const g=ctx.createRadialGradient(W/2,H*.46,Math.min(W,H)*.42,W/2,H*.46,Math.max(W,H)*.82);
-  g.addColorStop(0,"rgba(0,0,0,0)"); g.addColorStop(1,"rgba(0,0,0,0.22)");
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-}
-
-function roundRect(x,y,w,h,r){
-  ctx.beginPath(); ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);     ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
-}
-function label(x,y,text,color,border){
-  ctx.save(); ctx.font=fs(9);
-  if("letterSpacing" in ctx) ctx.letterSpacing="2px";
-  const w=ctx.measureText(text).width+20*ui, h=17*ui;
-  ctx.fillStyle=rgba(T().plate,0.88); roundRect(x,y-h/2,w,h,h/2); ctx.fill();
-  ctx.strokeStyle=border; ctx.lineWidth=1; ctx.stroke();
-  ctx.fillStyle=color; ctx.textBaseline="middle"; ctx.textAlign="left";
-  ctx.fillText(text,x+10*ui,y+0.5);
-  if("letterSpacing" in ctx) ctx.letterSpacing="0px";
-  ctx.restore();
-}
-
-/* ------------------------- SCROLL → PROGRESS ----------------------------- */
-const beats = [...document.querySelectorAll(".beat")];
-const nav   = document.getElementById("nav");
-const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-let scrollP=0, autoP=0, autoFrom=null, autoDone=reduce, dirty=true, lastP=-1;
-
-/* Progress is measured against the COPY COLUMN, not the story's scroll
-   distance. The sticky chart eats one viewport of that distance, so dividing it
-   into thirds drifts out of step with the beats — by §3 the copy would be most
-   of a screen ahead of the chart. Anchoring to the copy makes one unit of p
-   exactly one beat: beat k is on screen while p ∈ [k, k+1], and its text sits
-   at the viewport centre at p = k + 0.5. */
-const copyCol = document.getElementById("beats");
-function scrollProgress(){
-  const r=copyCol.getBoundingClientRect();
-  const bh=copyCol.offsetHeight/3;
-  if(bh<=0) return 0;
-  return clamp((window.innerHeight*0.5-r.top)/bh,0,3);
-}
-
-/* Autoplay: the story sits below the hero, so it starts the first time the
-   chart is actually on screen — not on load. max() hands control to scroll the
-   moment the reader passes the autoplayed point, with no fight between them. */
-new IntersectionObserver((entries)=>{
-  for(const e of entries){
-    // only from a standing start — if they arrived mid-story (an anchor link,
-    // a restored scroll position) autoplay would yank the chart forward
-    if(e.isIntersecting && e.intersectionRatio>0.5 && autoFrom===null && !autoDone){
-      if(scrollProgress()<0.05) autoFrom=now(); else autoDone=true;
-    }
-  }
-},{threshold:[0.5]}).observe(frame);
-
-function tickAuto(){
-  if(autoFrom===null||autoDone) return;
-  const t=clamp((now()-autoFrom)/3.4,0,1);
-  autoP=easeInOutCubic(t)*0.92;
-  if(t>=1) autoDone=true;
-  dirty=true;
-}
-
-function setActiveBeat(p){
-  const idx=clamp(Math.floor(p),0,2);
-  beats.forEach((b,i)=>b.toggleAttribute("data-active",i===idx));
-}
-
-addEventListener("scroll",()=>{ scrollP=scrollProgress(); dirty=true; },{passive:true});
-addEventListener("resize",()=>{ scrollP=scrollProgress(); dirty=true; });
-
-/* --------------------------------- LOOP ---------------------------------- */
-function loop(){
-  requestAnimationFrame(loop);
-  tickAuto();
-
-  const p=Math.max(scrollP,autoP);
-  const sc=stateAt(p);
-  const fx=updateFX(sc);
-
-  if(!dirty && p===lastP && !fx.busy) return;    // idle: don't burn frames
-  lastP=p; dirty=false;
-
-  draw(sc,fx);
-  setActiveBeat(p);
-  nav.toggleAttribute("data-scrolled",scrollY>12);
-}
-
-/* ------------------------------ JOIN DIALOG ------------------------------ */
-const modal   = document.getElementById("joinModal");
-const formWrap= document.getElementById("joinForm");
-const formEl  = document.getElementById("joinFormEl");
-const emailEl = document.getElementById("joinEmail");
-const submitEl= document.getElementById("joinSubmit");
-const msgEl   = document.getElementById("joinMsg");
-const doneEl  = document.getElementById("joinDone");
-let opener=null, sending=false;
-
-const FOCUSABLE='button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
-
-function openModal(btn){
-  opener=btn||null;
-  modal.hidden=false;
-  requestAnimationFrame(()=>modal.setAttribute("data-open",""));
-  setTimeout(()=>emailEl.focus(),60);
-  addEventListener("keydown",onKey,true);
-}
-function closeModal(){
-  modal.removeAttribute("data-open");
-  removeEventListener("keydown",onKey,true);
-  setTimeout(()=>{
-    modal.hidden=true;
-    // reset so a second visit starts clean
-    formWrap.hidden=false; doneEl.hidden=true;
-    formEl.reset(); msgEl.textContent="";
-    emailEl.removeAttribute("aria-invalid");
-    submitEl.disabled=false; submitEl.textContent="Join Waitlist";
-    if(opener) opener.focus();
-  },260);
-}
-function onKey(e){
-  if(e.key==="Escape"){ e.preventDefault(); closeModal(); return; }
-  if(e.key!=="Tab") return;
-  // keep focus inside the dialog while it is open
-  const items=[...modal.querySelectorAll(FOCUSABLE)].filter(el=>el.offsetParent!==null&&!el.disabled);
-  if(!items.length) return;
-  const first=items[0], last=items[items.length-1];
-  if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
-  else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
-}
-
-document.querySelectorAll("[data-join]").forEach(b=>
-  b.addEventListener("click",()=>openModal(b)));
-modal.querySelectorAll("[data-close]").forEach(b=>
-  b.addEventListener("click",closeModal));
-
-const MESSAGES={
-  invalid_email:"That address doesn't look right.",
-  rate_limited :"Too many attempts. Please try again in a few minutes.",
-  too_large    :"That address is too long.",
-  bad_request  :"Something went wrong. Please try again.",
-};
-
-formEl.addEventListener("submit",async(e)=>{
-  e.preventDefault();
-  if(sending) return;
-  const email=emailEl.value.trim();
-  // cheap client check for instant feedback; the server validates properly
-  if(!/^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(email)){
-    emailEl.setAttribute("aria-invalid","true");
-    msgEl.textContent=MESSAGES.invalid_email;
-    emailEl.focus();
-    return;
-  }
-  emailEl.removeAttribute("aria-invalid");
-  msgEl.textContent="";
-  sending=true; submitEl.disabled=true; submitEl.textContent="Joining\u2026";
-
-  try{
-    const res=await fetch("/api/waitlist",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({email}),
-    });
-    const data=await res.json().catch(()=>({}));
-    if(res.ok && data.ok){
-      formWrap.hidden=true; doneEl.hidden=false;
-      return;
-    }
-    msgEl.textContent=MESSAGES[data.error]||MESSAGES.bad_request;
-  }catch{
-    msgEl.textContent="Couldn't reach the server. Please try again.";
-  }finally{
-    sending=false; submitEl.disabled=false; submitEl.textContent="Join Waitlist";
-  }
-});
-
-/* -------------------- DISCRETE SECTION STEPPING -------------------------
-   One gesture = one section. The chart is already a function of scroll
-   position, so rather than animating the chart directly we animate the SCROLL
-   to a fixed stop — the whole beat (candles generating, position arming,
-   target being hit) plays out during the step, and the copy lands with it.
-
-   Stops sit just short of each beat boundary so the beat's own copy is still
-   the active one when the step settles. */
-const storyEl = document.getElementById("story");
-const STOPS   = [0.58, 1.58, 2.58];   // inside the sticky range, see note above
-const STEP_MS = 1100, COOLDOWN = 380, ENTER = 0.10;   // cooldown outlasts trackpad inertia
-let stepAnim = null, lastStepEnd = 0, touchY = null;
-
-function yForP(p){
-  const r = copyCol.getBoundingClientRect();
-  const bh = copyCol.offsetHeight / 3;
-  return p*bh + (r.top + window.scrollY) - window.innerHeight*0.5;
-}
-/* Only intercept while the story actually owns the viewport — outside it the
-   page must scroll normally, or the reader gets trapped. */
-function insideStory(){
-  const r = storyEl.getBoundingClientRect(), top = nav.offsetHeight + 2;
-  if(r.top > top) return false;        // not reached it yet
-  if(r.bottom <= top) return false;    // scrolled clean past it
-  // Geometry alone is not enough: at the last stop the story's bottom edge is
-  // already halfway up the viewport, so a height threshold would disengage and
-  // strand the reader with no way to step back. Progress is the real test.
-  const p = scrollProgress();
-  return p >= -0.25 && p <= 3.25;
-}
-function nextStop(dir){
-  const p = scrollProgress();
-  if(dir > 0) return STOPS.find(v => v > p + ENTER);
-  const before = STOPS.filter(v => v < p - ENTER);
-  return before.length ? before[before.length-1] : undefined;
-}
-function busy(){ return stepAnim !== null || performance.now() - lastStepEnd < COOLDOWN; }
-
-function stepTo(p){
-  const from = window.scrollY, to = Math.round(yForP(p));
-  if(Math.abs(to - from) < 2) return;
-  if(reduce){
-    window.scrollTo({top:to, behavior:"instant"});
-    lastStepEnd = performance.now(); return;
-  }
-  if(stepAnim) cancelAnimationFrame(stepAnim);
-  const t0 = performance.now();
-  (function run(now){
-    const k = clamp((now - t0)/STEP_MS, 0, 1);
-    // behavior:"instant" — html{scroll-behavior:smooth} would otherwise queue a
-    // second animation against every frame of this one
-    window.scrollTo({top: from + (to - from)*easeInOutCubic(k), behavior:"instant"});
-    if(k < 1) stepAnim = requestAnimationFrame(run);
-    else { stepAnim = null; lastStepEnd = performance.now(); }
-  })(t0);
-}
-
-function tryStep(dir, e){
-  if(!insideStory()) return false;
-  const target = nextStop(dir);
-  if(target === undefined) return false;   // at either end: hand back to the page
-  e.preventDefault();                      // before the busy check, so inertia
-  if(busy()) return true;                  // can't leak through as a free scroll
-  stepTo(target);
-  return true;
-}
-
-/* Only hijack the scroll where a precise pointer makes a deliberate "one
-   gesture = one section" step feel right. On touch devices this fought the
-   browser's own momentum scrolling — every swipe became a forced 1.1s scripted
-   scroll, so the story read as frozen — so phones and tablets scroll natively.
-   The chart is a pure function of scroll position and stays sticky, so it still
-   scrubs frame-for-frame either way. */
-const DISCRETE_STEP = matchMedia("(min-width: 900px) and (pointer: fine)").matches;
-
-if(DISCRETE_STEP){
-  addEventListener("wheel", e => {
-    const dir = Math.sign(e.deltaY);
-    if(dir) tryStep(dir, e);
-  }, {passive:false});
-
-  addEventListener("touchstart", e => { touchY = e.touches[0].clientY; }, {passive:true});
-  addEventListener("touchmove", e => {
-    if(touchY === null) return;
-    const dy = touchY - e.touches[0].clientY;
-    if(Math.abs(dy) < 26) return;
-    if(tryStep(Math.sign(dy), e)) touchY = null;
-  }, {passive:false});
-  addEventListener("touchend", () => { touchY = null; }, {passive:true});
-
-  addEventListener("keydown", e => {
-    const modalEl = document.getElementById("joinModal");
-    if(modalEl && !modalEl.hidden) return;                       // dialog owns keys
-    if(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-    const dir = {ArrowDown:1, PageDown:1, " ":1, ArrowUp:-1, PageUp:-1}[e.key];
-    if(dir) tryStep(dir, e);
-  });
-}
-
-document.getElementById("yr").textContent=new Date().getFullYear();
-resize();
-scrollP=scrollProgress();
-requestAnimationFrame(loop);
-</script>
+<script src="data.js" defer></script>
+<script src="main.js" defer></script>
 </body>
 </html>
