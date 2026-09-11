@@ -7,7 +7,7 @@ set -euo pipefail
 HOST="${HOST:-root@31.56.179.90}"
 DOMAIN="${DOMAIN:-bazarpeech.com}"
 SRC="${SRC:-index.html}"
-REMOTE="/var/www/${DOMAIN}"        # actual webroot on this server
+REMOTE="/var/www/${DOMAIN}/public"   # nginx root moved here on Sept 8
 
 [ -f "$SRC" ] || { echo "Can't find $SRC — run this from the project root." >&2; exit 1; }
 

@@ -4,7 +4,7 @@
 #   bash deploy/restore-previous.sh <backup>     # restores that one
 set -euo pipefail
 HOST="${HOST:-root@31.56.179.90}"
-REMOTE="/var/www/bazarpeech.com"
+REMOTE="/var/www/bazarpeech.com/public"   # nginx root moved here on Sept 8
 
 if [ $# -eq 0 ]; then
   echo "Backups on the server:"
