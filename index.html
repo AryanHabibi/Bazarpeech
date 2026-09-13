@@ -222,6 +222,11 @@ a{color:inherit; text-decoration:none}
   margin-block-end:11px;
 }
 .panel__head b{color:var(--gold-deep); font-weight:500; letter-spacing:.18em}
+.soon{
+  display:inline-block; vertical-align:middle; margin-inline-start:8px; padding:2px 8px;
+  border-radius:999px; border:1px solid rgba(228,190,125,.45); color:var(--gold);
+  font-size:8.5px; letter-spacing:.18em; text-transform:uppercase; font-weight:500; white-space:nowrap;
+}
 .beat__card .panel__note{margin-block-start:10px; font-size:10.5px; color:var(--faint); letter-spacing:.04em}
 
 .meter{display:grid; grid-template-columns:76px 1fr 46px; align-items:center; gap:12px; padding-block:6px}
@@ -500,8 +505,6 @@ a{color:inherit; text-decoration:none}
     </a>
     <nav class="nav__links">
       <a href="#story">The system</a>
-      <a href="#how">How it works</a>
-      <a href="#access">Access</a>
     </nav>
     <button class="btn" type="button" data-join>Join Waitlist</button>
   </div>
@@ -597,11 +600,11 @@ a{color:inherit; text-decoration:none}
 
       <article class="beat" data-beat="3">
         <div class="beat__in"><div class="beat__card">
-          <p class="beat__num">04 — Fundamentals</p>
+          <p class="beat__num">04 — Fundamentals <span class="soon">Coming soon</span></p>
           <h2>Reading the news.</h2>
           <p>Headlines are scored for their effect on gold. The order goes live only when they agree.</p>
           <div class="panel">
-            <div class="panel__head">News sentiment <b>for gold</b></div>
+            <div class="panel__head">News sentiment <b>preview</b></div>
             <ul class="news">
               <li data-news="0"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><span class="hl">Tensions rise along a major shipping route</span><span class="tag tag--bull">Bullish</span></li>
               <li data-news="1"><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 3v18M16.5 7.5c-.8-1.2-2.4-2-4.5-2-2.5 0-4 1.3-4 3s1.5 2.6 4 3 4 1.3 4 3-1.5 3-4 3c-2.2 0-3.8-.8-4.6-2"/></svg></span><span class="hl">Dollar slips after a softer jobs report</span><span class="tag tag--bull">Bullish</span></li>
@@ -654,7 +657,7 @@ a{color:inherit; text-decoration:none}
         <li class="flow__step" style="--i:3">
           <span class="flow__node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h11v14H6a1 1 0 0 1-1-1z"/><path d="M16 9h3v9a1 1 0 0 1-1 1h-2"/><path d="M8 9h5M8 12h5M8 15h3"/></svg></span>
           <span class="flow__n">04</span>
-          <h3>News</h3>
+          <h3>News <span class="soon">Coming soon</span></h3>
           <p>Scores the headlines for their effect on gold before committing.</p>
           <span class="flow__stat" data-bind="flow-net">Net +0.50</span>
         </li>
