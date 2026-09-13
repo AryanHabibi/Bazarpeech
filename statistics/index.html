@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Statistics — BazarPeech</title>
+<meta name="description" content="Equity curve, drawdowns and month-by-month returns for the BazarPeech XAU/USD trading system.">
+<meta name="theme-color" content="#0b0a09">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0a09'/%3E%3Cg stroke='%23e4be7d' stroke-width='2.4'%3E%3Cpath d='M11.5 7v18'/%3E%3Cpath d='M11.5 11.5v9.5' stroke-width='6.5'/%3E%3C/g%3E%3Cg stroke='%23e9e5dd' stroke-width='2.4' fill='none'%3E%3Cpath d='M21.5 9v16'/%3E%3Crect x='18.6' y='13.5' width='5.8' height='7.5'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+/* ===========================================================================
+   TOKENS — identical to the main page
+   ======================================================================== */
+:root{
+  --bg:#0b0a09; --bg-lift:#100e0d; --bg-card:#0f0d0c;
+  --gold:#e4be7d; --gold-deep:#9a763a; --pearl:#e9e5dd;
+  --text:#efeae1; --dim:#8a8177; --faint:#5c554d;
+  --hairline:rgba(255,255,255,.07); --hairline-strong:rgba(255,255,255,.12);
+  --gold-glow:rgba(228,190,125,.16);
+  --shell:min(1240px,calc(100% - 2 * var(--gutter)));
+  --gutter:clamp(20px,5vw,64px);
+  --nav-h:66px;
+  --f-display:clamp(2.15rem,5.1vw,3.95rem);
+  --f-h2:clamp(1.3rem,2.4vw,1.7rem);
+  --f-lead:clamp(1rem,1.5vw,1.175rem);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1,h2,h3{margin:0; font-weight:500; letter-spacing:-.02em; line-height:1.08}
+p{margin:0}
+a{color:inherit; text-decoration:none}
+button{font:inherit; color:inherit}
+.shell{width:var(--shell); margin-inline:auto}
+.eyebrow{font-size:9.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim); font-weight:500}
+.rule{height:1px; background:var(--hairline); border:0; margin:0}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* ============================== NAV ===================================== */
+.nav{
+  position:fixed; inset-block-start:0; inset-inline:0; z-index:50; height:var(--nav-h);
+  display:flex; align-items:center;
+  background:rgba(11,10,9,.72); backdrop-filter:blur(14px) saturate(140%); -webkit-backdrop-filter:blur(14px) saturate(140%);
+  border-block-end:1px solid transparent; transition:border-color .3s, background .3s;
+}
+.nav[data-scrolled]{border-block-end-color:var(--hairline); background:rgba(11,10,9,.9)}
+.nav__in{display:flex; align-items:center; gap:32px; width:var(--shell); margin-inline:auto}
+.brand{display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.02em; font-size:14.5px}
+.brand svg{display:block}
+.nav__links{display:flex; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
+.nav__links a{position:relative; transition:color .2s}
+.nav__links a:hover,.nav__links a[aria-current="page"]{color:var(--text)}
+.nav__links a[aria-current="page"]::after{
+  content:""; position:absolute; inset-inline:0; inset-block-end:-7px; height:1px; background:var(--gold);
+}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px;
+  font-size:13.5px; font-weight:500; border:1px solid var(--gold); color:var(--gold); background:transparent;
+  transition:background .25s, color .25s, transform .15s; white-space:nowrap; cursor:pointer;
+}
+.btn:hover{background:var(--gold); color:#120e07}
+.nav .btn{padding:9px 17px}
+@media (max-width:860px){ .nav__links{gap:18px; font-size:13px} .nav__in{gap:16px} }
+@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:14px} }
+
+/* ============================ PAGE HEAD ================================= */
+.head{padding-block:calc(var(--nav-h) + clamp(48px,9vh,96px)) clamp(28px,5vh,48px); position:relative}
+.head::before{
+  content:""; position:absolute; inset-block-start:-30%; inset-inline-end:-10%;
+  width:60vw; height:60vw; pointer-events:none;
+  background:radial-gradient(circle, var(--gold-glow), transparent 62%);
+}
+.head h1{font-size:var(--f-display); margin-block:18px 20px; position:relative}
+.head h1 em{font-style:normal; color:var(--gold)}
+.head .lead{font-size:var(--f-lead); color:var(--dim); max-width:58ch; position:relative}
+.meta{display:flex; flex-wrap:wrap; gap:10px 22px; margin-block-start:22px; font-size:12.5px; color:var(--faint); position:relative}
+.meta b{color:var(--dim); font-weight:500}
+
+/* sample-mode notice — deliberately impossible to miss */
+.sample{
+  position:relative; display:flex; gap:14px; align-items:flex-start;
+  margin-block-start:28px; padding:14px 18px; border-radius:12px;
+  border:1px dashed rgba(228,190,125,.55); background:rgba(228,190,125,.06);
+  color:var(--text); font-size:13.5px; line-height:1.55; max-width:760px;
+}
+.sample__tag{
+  flex:none; font-size:9px; letter-spacing:.2em; text-transform:uppercase; font-weight:600;
+  padding:4px 9px; border-radius:999px; background:var(--gold); color:#120e07; margin-block-start:1px;
+}
+.sample p{color:var(--dim)}
+.sample strong{color:var(--text); font-weight:500}
+
+/* ============================== KPIs ==================================== */
+.kpis{display:grid; grid-template-columns:repeat(6,1fr); gap:1px; background:var(--hairline); border:1px solid var(--hairline); border-radius:16px; overflow:hidden}
+.kpi{
+  position:relative; background:var(--bg); padding:20px 20px 18px; min-height:132px;
+  opacity:0; transform:translateY(10px); transition:opacity .6s var(--ease), transform .6s var(--ease), background .3s;
+  transition-delay:calc(var(--i,0) * 70ms);
+}
+.kpis[data-in] .kpi{opacity:1; transform:none}
+.kpi:hover{background:var(--bg-lift)}
+.kpi__head{display:flex; align-items:center; justify-content:space-between; gap:8px}
+.kpi__label{font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--dim)}
+.kpi__value{margin-block-start:16px; font-size:clamp(1.45rem,2.2vw,1.9rem); letter-spacing:-.02em; font-variant-numeric:tabular-nums; line-height:1.1}
+.kpi__value.is-gold{color:var(--gold)}
+.kpi__sub{margin-block-start:6px; font-size:12px; color:var(--faint); font-variant-numeric:tabular-nums}
+.info{
+  flex:none; width:20px; height:20px; border-radius:50%; display:grid; place-items:center;
+  border:1px solid var(--hairline-strong); background:transparent; color:var(--dim); cursor:pointer;
+  font-size:11px; font-style:italic; font-family:Georgia,"Times New Roman",serif; line-height:1;
+  transition:border-color .2s, color .2s, background .2s, transform .2s;
+}
+.info:hover,.info[aria-expanded="true"]{border-color:var(--gold); color:var(--gold); background:rgba(228,190,125,.08)}
+.info:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
+@media (max-width:1100px){ .kpis{grid-template-columns:repeat(3,1fr)} }
+@media (max-width:560px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .kpi{padding:16px 14px 14px; min-height:118px}
+  .kpi__label{letter-spacing:.1em}                 /* keep two-word labels on one line */
+  .sample{flex-direction:column; gap:10px}
+}
+
+/* shared explainer popover */
+.pop{
+  position:fixed; z-index:80; width:min(320px,calc(100vw - 24px)); padding:14px 16px 13px;
+  background:#15120f; border:1px solid var(--hairline-strong); border-radius:12px;
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.9), 0 0 0 1px rgba(228,190,125,.05);
+  font-size:13px; line-height:1.55; color:var(--dim);
+  opacity:0; transform:translateY(6px) scale(.98); transform-origin:top center; pointer-events:none;
+  transition:opacity .22s var(--ease), transform .22s var(--ease);
+}
+.pop[data-open]{opacity:1; transform:none; pointer-events:auto}
+.pop h3{font-size:.95rem; color:var(--text); margin-block-end:6px; letter-spacing:-.01em}
+.pop p + p{margin-block-start:8px}
+.pop b{color:var(--text); font-weight:500}
+.pop code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11.5px; color:var(--gold); background:rgba(228,190,125,.07); padding:1px 5px; border-radius:4px}
+
+/* ============================ CARDS ===================================== */
+.card{
+  margin-block-start:clamp(20px,3vh,28px); background:var(--bg-card);
+  border:1px solid var(--hairline); border-radius:16px; padding:clamp(18px,2.4vw,28px);
+}
+.card__head{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px 24px; margin-block-end:18px}
+.card__head h2{font-size:var(--f-h2)}
+.card__head p{font-size:13px; color:var(--faint); margin-block-start:6px}
+.controls{display:flex; flex-wrap:wrap; gap:10px}
+
+/* segmented control with a sliding thumb */
+.seg{position:relative; display:inline-flex; padding:3px; border-radius:999px; border:1px solid var(--hairline-strong); background:rgba(255,255,255,.02)}
+.seg__thumb{
+  position:absolute; inset-block:3px; left:0; width:0; border-radius:999px;
+  background:rgba(228,190,125,.14); border:1px solid rgba(228,190,125,.45);
+  transition:transform .38s var(--ease), width .38s var(--ease);
+}
+.seg button{
+  position:relative; z-index:1; border:0; background:transparent; cursor:pointer;
+  padding:6px 13px; border-radius:999px; font-size:12.5px; color:var(--dim); transition:color .25s;
+}
+.seg button[aria-pressed="true"]{color:var(--gold)}
+.seg button:hover{color:var(--text)}
+.seg button:focus-visible{outline:2px solid var(--gold); outline-offset:1px}
+
+/* ============================ CHARTS ==================================== */
+.chart{position:relative; touch-action:pan-y}
+.chart canvas{display:block; width:100%; height:100%}
+.chart--equity{height:clamp(280px,46vh,440px)}
+.chart--dd{height:clamp(96px,14vh,130px); margin-block-start:6px; border-block-start:1px solid var(--hairline)}
+.chart__label{position:absolute; inset-block-start:8px; inset-inline-start:0; font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); pointer-events:none}
+.tip{
+  position:absolute; z-index:5; min-width:176px; padding:10px 12px; border-radius:10px; pointer-events:none;
+  background:rgba(21,18,15,.94); border:1px solid var(--hairline-strong);
+  box-shadow:0 16px 40px -14px rgba(0,0,0,.9); font-size:12px; color:var(--dim);
+  opacity:0; transform:translateY(4px); transition:opacity .15s, transform .15s;
+}
+.tip[data-on]{opacity:1; transform:none}
+.tip__date{font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--faint); margin-block-end:6px}
+.tip__row{display:flex; justify-content:space-between; gap:14px; font-variant-numeric:tabular-nums}
+.tip__row b{color:var(--text); font-weight:500}
+.tip__row .up{color:var(--gold)} .tip__row .down{color:var(--pearl); opacity:.75}
+
+/* ============================ HEATMAP =================================== */
+.heat__scroll{overflow-x:auto; margin-inline:-4px; padding-inline:4px; -webkit-overflow-scrolling:touch}
+.heat__table{width:100%; min-width:760px; border-collapse:separate; border-spacing:3px; font-variant-numeric:tabular-nums}
+.heat__table th{font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); font-weight:500; padding:4px 2px; text-align:center}
+.heat__table th[scope="row"]{text-align:start; padding-inline-end:8px; color:var(--dim); letter-spacing:.06em; position:sticky; left:0; background:var(--bg-card); z-index:1}
+.heat__table td{
+  position:relative; height:34px; border-radius:6px; text-align:center; font-size:11.5px; color:var(--text);
+  background:rgba(255,255,255,.025); cursor:default;
+  opacity:0; transform:scale(.86); transition:opacity .45s var(--ease), transform .45s var(--ease), box-shadow .2s;
+  transition-delay:calc(var(--d,0) * 1ms);
+}
+.heat[data-in] .heat__table td{opacity:1; transform:none}
+.heat__table td.is-year{font-weight:500; background:rgba(255,255,255,.04)}
+.heat__table td.is-empty{background:transparent; color:var(--faint)}
+.heat__table td:hover{box-shadow:inset 0 0 0 1px rgba(228,190,125,.7)}
+.heat__table tr:hover th[scope="row"]{color:var(--gold)}
+.heat__legend{display:flex; align-items:center; gap:10px; margin-block-start:14px; font-size:11.5px; color:var(--faint)}
+.heat__ramp{height:6px; width:160px; border-radius:3px; background:linear-gradient(to right, rgba(233,229,221,.35), rgba(255,255,255,.03), rgba(228,190,125,.85))}
+
+/* ========================== METHOD + FOOT =============================== */
+.method{margin-block:clamp(40px,7vh,72px) 0; display:grid; grid-template-columns:1fr 1fr; gap:clamp(20px,4vw,56px); font-size:13.5px; color:var(--dim); line-height:1.7}
+.method h3{font-size:.95rem; color:var(--text); margin-block-end:10px}
+.method ul{margin:0; padding-inline-start:18px}
+.method li + li{margin-block-start:4px}
+@media (max-width:760px){ .method{grid-template-columns:1fr} }
+
+.foot{margin-block-start:clamp(56px,9vh,96px); padding-block:44px 56px; border-block-start:1px solid var(--hairline); font-size:13px; color:var(--faint)}
+.foot__top{display:flex; flex-wrap:wrap; gap:22px; align-items:center; margin-block-end:28px}
+.foot__links{display:flex; gap:22px; margin-inline-start:auto}
+.foot__links a:hover{color:var(--text)}
+.disclaimer{max-width:78ch; line-height:1.7}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms !important; transition-delay:0s !important; animation:none !important}
+}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="brand" href="../">
+      <svg width="17" height="17" viewBox="0 0 32 32" aria-hidden="true">
+        <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
+        <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
+      </svg>
+      <span class="brand__name">BazarPeech</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="../#story">The system</a>
+      <a href="./" aria-current="page">Statistics</a>
+    </nav>
+    <a class="btn" href="../#join">Join Waitlist</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="head shell">
+    <p class="eyebrow">Statistics</p>
+    <h1>Performance, <em>measured</em>.</h1>
+    <p class="lead">Growth, drawdowns and every month on record — each figure on this page is computed from the same series of monthly returns.</p>
+    <div class="meta" id="meta"></div>
+
+    <div class="sample" id="sampleNotice" hidden>
+      <span class="sample__tag">Sample data</span>
+      <p><strong>These are not trading results.</strong> The figures below are generated placeholder data used to review this page's layout. Verified results replace them before this page is published.</p>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="kpis" id="kpis">
+      <article class="kpi" style="--i:0" data-kpi="net">
+        <div class="kpi__head"><span class="kpi__label">Net profit</span><button class="info" type="button" data-term="net" aria-label="What is net profit?" aria-expanded="false" aria-controls="pop">i</button></div>
+        <div class="kpi__value is-gold" data-v>—</div><div class="kpi__sub" data-s></div>
+      </article>
+      <article class="kpi" style="--i:1" data-kpi="cagr">
+        <div class="kpi__head"><span class="kpi__label">CAGR</span><button class="info" type="button" data-term="cagr" aria-label="What is CAGR?" aria-expanded="false" aria-controls="pop">i</button></div>
+        <div class="kpi__value" data-v>—</div><div class="kpi__sub" data-s></div>
+      </article>
+      <article class="kpi" style="--i:2" data-kpi="mdd">
+        <div class="kpi__head"><span class="kpi__label">Max drawdown</span><button class="info" type="button" data-term="mdd" aria-label="What is max drawdown?" aria-expanded="false" aria-controls="pop">i</button></div>
+        <div class="kpi__value" data-v>—</div><div class="kpi__sub" data-s></div>
+      </article>
+      <article class="kpi" style="--i:3" data-kpi="calmar">
+        <div class="kpi__head"><span class="kpi__label">Calmar ratio</span><button class="info" type="button" data-term="calmar" aria-label="What is the Calmar ratio?" aria-expanded="false" aria-controls="pop">i</button></div>
+        <div class="kpi__value" data-v>—</div><div class="kpi__sub" data-s></div>
+      </article>
+      <article class="kpi" style="--i:4" data-kpi="sharpe">
+        <div class="kpi__head"><span class="kpi__label">Sharpe ratio</span><button class="info" type="button" data-term="sharpe" aria-label="What is the Sharpe ratio?" aria-expanded="false" aria-controls="pop">i</button></div>
+        <div class="kpi__value" data-v>—</div><div class="kpi__sub" data-s></div>
+      </article>
+      <article class="kpi" style="--i:5" data-kpi="win">
+        <div class="kpi__head"><span class="kpi__label">Profitable months</span><button class="info" type="button" data-term="win" aria-label="What are profitable months?" aria-expanded="false" aria-controls="pop">i</button></div>
+        <div class="kpi__value" data-v>—</div><div class="kpi__sub" data-s></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="card">
+      <div class="card__head">
+        <div>
+          <h2>Equity curve</h2>
+          <p id="equityCaption">Profits reinvested, month-end balances</p>
+        </div>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Time range" data-seg="range">
+            <span class="seg__thumb" aria-hidden="true"></span>
+            <button type="button" data-val="12" aria-pressed="false">1Y</button>
+            <button type="button" data-val="36" aria-pressed="false">3Y</button>
+            <button type="button" data-val="60" aria-pressed="false">5Y</button>
+            <button type="button" data-val="all" aria-pressed="true">All</button>
+          </div>
+          <div class="seg" role="group" aria-label="Scale" data-seg="scale">
+            <span class="seg__thumb" aria-hidden="true"></span>
+            <button type="button" data-val="lin" aria-pressed="false">Linear</button>
+            <button type="button" data-val="log" aria-pressed="true">Log</button>
+          </div>
+          <button class="info" type="button" data-term="log" aria-label="Why a log scale?" aria-expanded="false" aria-controls="pop" style="align-self:center">i</button>
+        </div>
+      </div>
+      <div class="chart chart--equity" id="equityWrap">
+        <canvas id="equity" aria-label="Equity curve chart" role="img"></canvas>
+        <div class="tip" id="tip" aria-hidden="true"></div>
+      </div>
+      <div class="chart chart--dd" id="ddWrap">
+        <span class="chart__label">Drawdown</span>
+        <canvas id="dd" aria-label="Drawdown chart" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <section class="shell">
+    <div class="card heat" id="heat">
+      <div class="card__head">
+        <div>
+          <h2>Monthly returns</h2>
+          <p>Net return for each month; the last column compounds the year</p>
+        </div>
+        <button class="info" type="button" data-term="heat" aria-label="How to read monthly returns" aria-expanded="false" aria-controls="pop">i</button>
+      </div>
+      <div class="heat__scroll"><table class="heat__table" id="heatTable"></table></div>
+      <div class="heat__legend"><span>Loss</span><span class="heat__ramp" aria-hidden="true"></span><span>Gain</span></div>
+    </div>
+  </section>
+
+  <section class="shell method">
+    <div>
+      <h3>How these figures are calculated</h3>
+      <ul>
+        <li>Every metric derives from one series of net monthly returns, compounded from the starting balance.</li>
+        <li>Drawdowns use month-end balances, so a deeper dip inside a month does not appear.</li>
+        <li>Sharpe ratio is annualised from monthly returns with a 0% risk-free rate.</li>
+        <li>Calmar ratio uses the full period, not the trailing 36 months some sources use.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Reading past results</h3>
+      <p>Past performance is not a reliable indicator of future results. A long record shows how a system behaved in the markets it has seen; it cannot tell you how it will behave in markets it has not. Size any allocation for the drawdown, not for the average.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <div class="foot__top">
+      <a class="brand" href="../">
+        <svg width="15" height="15" viewBox="0 0 32 32" aria-hidden="true">
+          <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
+          <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
+        </svg>
+        BazarPeech
+      </a>
+      <div class="foot__links">
+        <a href="../#story">The system</a>
+        <a href="./">Statistics</a>
+        <a href="../#join">Contact</a>
+      </div>
+    </div>
+    <hr class="rule">
+    <p class="disclaimer" style="margin-block-start:24px">
+      <strong style="color:var(--dim); font-weight:500">Risk warning.</strong>
+      Trading gold and other leveraged instruments carries a high level of risk
+      and can result in the loss of more than your initial deposit. Automated
+      systems do not remove that risk. Past performance, including any
+      backtested or simulated result, is not a reliable indicator of future
+      results. Nothing on this page is investment advice. Only trade with
+      capital you can afford to lose.
+    </p>
+    <p style="margin-block-start:18px">© <span id="yr">2026</span> BazarPeech.</p>
+  </div>
+</footer>
+
+<div class="pop" id="pop" role="dialog" aria-modal="false" aria-labelledby="popTitle" hidden>
+  <h3 id="popTitle"></h3>
+  <div id="popBody"></div>
+</div>
+
+<script src="results.js"></script>
+<script>
+"use strict";
+/* ===========================================================================
+   BazarPeech — Statistics.
+
+   One input: a series of net monthly returns (results.js). Every number,
+   chart and cell on the page is derived from it, so nothing can disagree.
+   Until verified results are supplied the page runs on generated SAMPLE
+   data, and says so on the page and inside the chart itself.
+   ========================================================================= */
+
+/* ------------------------------ utilities -------------------------------- */
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOutExpo=t=>t>=1?1:1-Math.pow(2,-10*t);
+const REDUCE=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MINUS="−";
+const $=s=>document.querySelector(s);
+
+const fmtMoney=v=>{
+  const a=Math.abs(v), s=v<0?MINUS:"";
+  if(a>=1e6) return s+"$"+(a/1e6).toFixed(a>=1e7?1:2)+"M";
+  if(a>=1e4) return s+"$"+(a/1e3).toFixed(1)+"k";
+  return s+"$"+Math.round(a).toLocaleString("en-US");
+};
+const fmtMoneyFull=v=>(v<0?MINUS:"")+"$"+Math.round(Math.abs(v)).toLocaleString("en-US");
+const fmtPct=(v,d=1,sign=true)=>(v<0?MINUS:(sign&&v>0?"+":""))+Math.abs(v*100).toFixed(d)+"%";
+
+/* -------------------------------- data ----------------------------------- */
+function mulberry32(seed){
+  return function(){ seed|=0; seed=seed+0x6D2B79F5|0;
+    let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t;
+    return ((t^t>>>14)>>>0)/4294967296; };
+}
+/* Placeholder only. Deliberately unremarkable, seeded so it is stable between
+   visits, and generated sequentially so each new month extends the series
+   without rewriting the past. */
+function sampleSeries(){
+  const rng=mulberry32(20100101), now=new Date();
+  const n=(now.getFullYear()-2010)*12+now.getMonth();     // through last complete month
+  const gauss=()=>{let u=0,v=0;while(!u)u=rng();while(!v)v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+  const monthly=[]; let carry=0;
+  for(let i=0;i<n;i++){
+    carry=0.25*carry+gauss()*0.026;                        // mild momentum → realistic losing runs
+    const shock=rng()<0.04?-0.03:0;
+    monthly.push(clamp(0.008+carry+shock,-0.12,0.12));
+  }
+  return {start:"2010-01", startingBalance:10000, monthly, source:null, asOf:null};
+}
+function normalise(r){
+  const [y,m]=String(r.start||"").split("-").map(Number);
+  if(!y||!m) throw new Error("results.js: start must be YYYY-MM");
+  const monthly=r.monthly.map(Number);
+  if(monthly.some(v=>!isFinite(v))) throw new Error("results.js: monthly must be numbers");
+  return {start:r.start, startingBalance:+r.startingBalance||10000, monthly, source:r.source||null, asOf:r.asOf||null};
+}
+
+const RES=window.BZP_RESULTS;
+const SAMPLE=!(RES && Array.isArray(RES.monthly) && RES.monthly.length);
+const D=SAMPLE?sampleSeries():normalise(RES);
+const R=D.monthly, N=R.length;
+const [Y0,M0]=D.start.split("-").map(Number);
+const monthOf=i=>({y:Y0+Math.floor((M0-1+i)/12), m:(M0-1+i)%12});   // month i, m 0-based
+const labelOf=i=>{const d=monthOf(i); return MON[d.m]+" "+d.y;};
+
+/* point k = balance at the END of month k-1; point 0 = the starting balance */
+const EQ=new Float64Array(N+1), DD=new Float64Array(N+1);
+EQ[0]=D.startingBalance;
+for(let i=0;i<N;i++) EQ[i+1]=EQ[i]*(1+R[i]);
+{ let peak=EQ[0]; for(let k=0;k<=N;k++){ peak=Math.max(peak,EQ[k]); DD[k]=EQ[k]/peak-1; } }
+
+/* ------------------------------ metrics ---------------------------------- */
+const M=(()=>{
+  const growth=EQ[N]/EQ[0];
+  const cagr=Math.pow(growth,12/N)-1;
+  let mdd=0, troughK=0, peakK=0, runPeakK=0;
+  for(let k=0;k<=N;k++){
+    if(EQ[k]>=EQ[runPeakK]) runPeakK=k;
+    if(DD[k]<mdd){ mdd=DD[k]; troughK=k; peakK=runPeakK; }
+  }
+  let recoverK=null; for(let k=troughK;k<=N;k++) if(EQ[k]>=EQ[peakK]){ recoverK=k; break; }
+  let longest=0, cur=0; for(let k=1;k<=N;k++){ cur=DD[k]<0?cur+1:0; longest=Math.max(longest,cur); }
+  const mean=R.reduce((a,b)=>a+b,0)/N;
+  const sd=Math.sqrt(R.reduce((a,b)=>a+(b-mean)**2,0)/Math.max(1,N-1));
+  const wins=R.filter(v=>v>0).length;
+  let best=0,worst=0; R.forEach((v,i)=>{ if(v>R[best])best=i; if(v<R[worst])worst=i; });
+  return { net:EQ[N]-EQ[0], total:growth-1, cagr, years:N/12, mdd, peakK, troughK, recoverK, longest,
+           calmar: mdd<0 ? cagr/Math.abs(mdd) : null,
+           sharpe: sd>0 ? mean/sd*Math.sqrt(12) : null,
+           win:wins/N, wins, best, worst, mean, sd };
+})();
+
+/* ---------------------------- header meta -------------------------------- */
+$("#sampleNotice").hidden=!SAMPLE;
+$("#meta").innerHTML=[
+  `<span><b>${labelOf(0)} – ${labelOf(N-1)}</b></span>`,
+  `<span>${N} months</span>`,
+  `<span>Starting balance <b>${fmtMoneyFull(EQ[0])}</b></span>`,
+  SAMPLE ? `<span>Source <b>sample data</b></span>` : (D.source?`<span>Source <b>${D.source.replace(/</g,"&lt;")}</b></span>`:""),
+  !SAMPLE && D.asOf ? `<span>As of <b>${String(D.asOf).replace(/</g,"&lt;")}</b></span>` : ""
+].join("");
+$("#equityCaption").textContent=`${fmtMoneyFull(EQ[0])} starting balance, profits reinvested, month-end balances`;
+
+/* ------------------------------- KPIs ------------------------------------ */
+/* Each KPI counts up from zero the first time the strip is on screen. The
+   value is formatted every frame, so the digits never jitter in width. */
+const KPI=[
+  {key:"net",    to:M.net,             fmt:v=>fmtMoney(v),               sub:`${fmtPct(M.total,0)} on ${fmtMoneyFull(EQ[0])}`},
+  {key:"cagr",   to:M.cagr,            fmt:v=>fmtPct(v,1),               sub:`per year over ${M.years.toFixed(1)} years`},
+  {key:"mdd",    to:M.mdd,             fmt:v=>fmtPct(v,1,false),         sub:`${labelOf(Math.max(0,M.peakK-1))} → ${labelOf(Math.max(0,M.troughK-1))}`},
+  {key:"calmar", to:M.calmar??0,       fmt:v=>M.calmar==null?"—":v.toFixed(2), sub:"CAGR ÷ max drawdown"},
+  {key:"sharpe", to:M.sharpe??0,       fmt:v=>M.sharpe==null?"—":v.toFixed(2), sub:"annualised, 0% risk-free"},
+  {key:"win",    to:M.win,             fmt:v=>Math.round(v*100)+"%",     sub:`${M.wins} of ${N} months`},
+];
+KPI.forEach(k=>{
+  const el=document.querySelector(`[data-kpi="${k.key}"]`);
+  k.v=el.querySelector("[data-v]"); el.querySelector("[data-s]").textContent=k.sub;
+  k.v.textContent=k.fmt(REDUCE?k.to:0);
+});
+function countUp(){
+  if(REDUCE){ KPI.forEach(k=>k.v.textContent=k.fmt(k.to)); return; }
+  const t0=performance.now(), dur=1400;
+  (function step(now){
+    const t=clamp((now-t0)/dur,0,1), e=easeOutExpo(t);
+    KPI.forEach((k,i)=>{ const local=clamp(e*1.08-i*0.015,0,1); k.v.textContent=k.fmt(k.to*local); });
+    if(t<1) requestAnimationFrame(step); else KPI.forEach(k=>k.v.textContent=k.fmt(k.to));
+  })(t0);
+}
+new IntersectionObserver((es,io)=>{
+  if(es.some(e=>e.isIntersecting)){ $("#kpis").setAttribute("data-in",""); countUp(); io.disconnect(); }
+},{threshold:.25}).observe($("#kpis"));
+
+/* ---------------------------- explainers --------------------------------- */
+/* Plain-English definitions, each closed with what the figure is on THIS
+   page — the reader shouldn't have to map the formula onto the numbers. */
+const TERMS={
+  net:{t:"Net profit",b:()=>`<p>The total gain over the whole period, after fees and costs, with profits left in to compound. Shown in dollars and as a percentage of the starting balance.</p>
+       <p>Here: ${fmtMoneyFull(EQ[0])} grew to <b>${fmtMoneyFull(EQ[N])}</b> over ${M.years.toFixed(1)} years.</p>`},
+  cagr:{t:"CAGR — compound annual growth rate",b:()=>`<p>The single steady yearly return that would turn the starting balance into the ending balance over the same period. It smooths good and bad years together, so no individual year necessarily returned this.</p>
+       <p><code>(end ÷ start)^(1 ÷ years) − 1</code></p>`},
+  mdd:{t:"Max drawdown",b:()=>`<p>The largest fall from a high to a later low, as a percentage of that high. It answers: what's the worst loss someone who started at the top would have sat through?</p>
+       <p>Here: ${fmtPct(M.mdd,1,false)} from ${labelOf(Math.max(0,M.peakK-1))} to ${labelOf(Math.max(0,M.troughK-1))}${M.recoverK!=null?`, recovered by ${labelOf(M.recoverK-1)}`:", not yet recovered"}. Measured on month-end balances, so a deeper dip inside a month wouldn't show.</p>`},
+  calmar:{t:"Calmar ratio",b:()=>`<p>Annual growth divided by the maximum drawdown — how much return you got for the worst pain you had to accept. Above 1 means a typical year's growth outpaced the deepest drawdown.</p>
+       <p><code>CAGR ÷ |max drawdown|</code> — over the full period here; some sources use only the last 36 months.</p>`},
+  sharpe:{t:"Sharpe ratio",b:()=>`<p>Average return divided by how much returns swing around that average. Higher means smoother growth for the same result; two systems with equal returns can have very different Sharpe ratios.</p>
+       <p><code>mean monthly ÷ st.dev monthly × √12</code>, with a 0% risk-free rate.</p>`},
+  win:{t:"Profitable months",b:()=>`<p>The share of months that ended with a gain. On its own it says little about risk — a few large losing months can outweigh many small winning ones.</p>
+       <p>Here: best month ${fmtPct(R[M.best],2)} (${labelOf(M.best)}), worst ${fmtPct(R[M.worst],2)} (${labelOf(M.worst)}).</p>`},
+  log:{t:"Log vs linear scale",b:()=>`<p>On a <b>linear</b> scale equal distances are equal dollar amounts, so compounding makes early years look flat and recent moves look huge.</p>
+       <p>On a <b>log</b> scale equal distances are equal <em>percentage</em> changes — a 10% gain looks the same size in any year. It's the honest way to compare periods.</p>`},
+  heat:{t:"Reading monthly returns",b:()=>`<p>Each cell is one month's net return; brighter gold is a bigger gain, pale is a loss. The last column compounds that year's months together.</p>
+       <p>Look for runs of pale cells — clusters of losing months matter more than any single one.</p>`},
+};
+const pop=$("#pop"); let popFor=null;
+function placePop(btn){
+  const r=btn.getBoundingClientRect(), pw=pop.offsetWidth, ph=pop.offsetHeight, m=12;
+  let x=r.left+r.width/2-pw/2; x=clamp(x,m,innerWidth-pw-m);
+  let y=r.bottom+10; const above=y+ph>innerHeight-m && r.top-10-ph>m;
+  if(above) y=r.top-10-ph;
+  pop.style.left=Math.round(x)+"px"; pop.style.top=Math.round(y)+"px";
+  pop.style.transformOrigin=`${Math.round(r.left+r.width/2-x)}px ${above?"bottom":"top"}`;
+}
+function openPop(btn){
+  if(popFor===btn){ closePop(); return; }
+  if(popFor) popFor.setAttribute("aria-expanded","false");
+  const term=TERMS[btn.dataset.term];
+  $("#popTitle").textContent=term.t; $("#popBody").innerHTML=term.b();
+  pop.hidden=false; placePop(btn);
+  requestAnimationFrame(()=>pop.setAttribute("data-open",""));
+  btn.setAttribute("aria-expanded","true"); popFor=btn;
+}
+function closePop(returnFocus){
+  if(!popFor) return;
+  pop.removeAttribute("data-open"); popFor.setAttribute("aria-expanded","false");
+  if(returnFocus) popFor.focus();
+  const was=popFor; popFor=null;
+  setTimeout(()=>{ if(!popFor) pop.hidden=true; },230);
+  return was;
+}
+document.addEventListener("click",e=>{
+  const btn=e.target.closest(".info");
+  if(btn){ openPop(btn); return; }
+  if(popFor && !pop.contains(e.target)) closePop();
+});
+document.addEventListener("keydown",e=>{ if(e.key==="Escape" && popFor) closePop(true); });
+addEventListener("resize",()=>{ if(popFor) placePop(popFor); });
+addEventListener("scroll",()=>{
+  if(!popFor) return;
+  const r=popFor.getBoundingClientRect();
+  if(r.bottom<0||r.top>innerHeight) closePop(); else placePop(popFor);   // don't trail an off-screen button
+},{passive:true});
+
+/* ------------------------- segmented controls ---------------------------- */
+function syncThumb(seg){
+  const on=seg.querySelector('[aria-pressed="true"]'), th=seg.querySelector(".seg__thumb");
+  th.style.width=on.offsetWidth+"px"; th.style.transform=`translateX(${on.offsetLeft}px)`;
+}
+document.querySelectorAll(".seg").forEach(seg=>{
+  syncThumb(seg);
+  seg.addEventListener("click",e=>{
+    const b=e.target.closest("button"); if(!b||b.getAttribute("aria-pressed")==="true") return;
+    seg.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));
+    syncThumb(seg);
+    if(seg.dataset.seg==="range") setRange(b.dataset.val); else setScale(b.dataset.val);
+  });
+});
+addEventListener("resize",()=>document.querySelectorAll(".seg").forEach(syncThumb));
+
+/* ------------------------------- charts ---------------------------------- */
+/* Two canvases share one x-mapping: the equity curve and the drawdown
+   ("underwater") chart beneath it, so the crosshair lines up across both.
+   The view — visible window [a,b] and a linear↔log blend — is tweened, so
+   changing range or scale morphs the chart instead of snapping it. */
+const eqWrap=$("#equityWrap"), ddWrap=$("#ddWrap"), tip=$("#tip");
+const eqC=$("#equity"), ddC=$("#dd"), eqX=eqC.getContext("2d"), ddX=ddC.getContext("2d");
+const PAD={l:4,r:62,t:14,b:26}, DPAD={l:4,r:62,t:24,b:6};
+let DPR=1, EW=0, EH=0, DW=0, DH=0;
+
+const view={a:0,b:N,log:1};
+let tween=null, reveal=REDUCE?1:0, revealT0=null, hoverK=null, dirty=true, raf=0;
+
+const eqAt=f=>{const i=clamp(Math.floor(f),0,N), j=Math.min(N,i+1); return lerp(EQ[i],EQ[j],f-i);};
+const ddAt=f=>{const i=clamp(Math.floor(f),0,N), j=Math.min(N,i+1); return lerp(DD[i],DD[j],f-i);};
+
+function setRange(v){ const n=v==="all"?N:Math.min(N,+v); animateTo({a:N-n,b:N}); }
+function setScale(v){ animateTo({log:v==="log"?1:0}); }
+function animateTo(to){
+  // build on any change still in flight: clicking 3Y then Log within the tween
+  // must keep BOTH, not let the second click discard the first's target
+  const target={...(tween?tween.target:view),...to};
+  if(REDUCE){ Object.assign(view,target); dirty=true; kick(); return; }
+  tween={from:{...view},target,t0:performance.now(),dur:760};
+  kick();
+}
+
+function sizeCanvas(c,ctx,wrap){
+  const r=wrap.getBoundingClientRect(), w=Math.max(200,r.width), h=Math.max(60,r.height);
+  c.width=Math.round(w*DPR); c.height=Math.round(h*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+  return [w,h];
+}
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  [EW,EH]=sizeCanvas(eqC,eqX,eqWrap); [DW,DH]=sizeCanvas(ddC,ddX,ddWrap);
+  PAD.r=DPAD.r=EW<520?50:62;
+  dirty=true; kick();
+}
+new ResizeObserver(resize).observe(eqWrap);
+new ResizeObserver(resize).observe(ddWrap);
+
+function kick(){ if(!raf) raf=requestAnimationFrame(frame); }
+function frame(now){
+  raf=0; let busy=false;
+  if(tween){
+    const t=clamp((now-tween.t0)/tween.dur,0,1), e=easeInOut(t);
+    for(const k of ["a","b","log"]) view[k]=lerp(tween.from[k],tween.target[k],e);
+    if(t>=1) tween=null; else busy=true;
+    dirty=true;
+  }
+  if(revealT0!==null && reveal<1){ reveal=clamp((now-revealT0)/1700,0,1); busy=busy||reveal<1; dirty=true; }
+  if(dirty){ drawEquity(); drawDD(); dirty=false; }
+  if(busy) kick();
+}
+
+/* x for point k; shared by both charts */
+const plotW=pad=>EW-pad.l-pad.r;
+const xk=(k,pad=PAD)=>pad.l+(k-view.a)/(view.b-view.a)*plotW(pad);
+
+function yMapper(){
+  const {a,b}=view;
+  let lo=Math.min(eqAt(a),eqAt(b)), hi=Math.max(eqAt(a),eqAt(b));
+  for(let k=Math.ceil(a);k<=Math.floor(b);k++){ if(EQ[k]<lo)lo=EQ[k]; if(EQ[k]>hi)hi=EQ[k]; }
+  const sp=(hi-lo)||hi*0.05, Llo=lo-sp*0.10, Lhi=hi+sp*0.07;
+  const gs=Math.log(hi/lo)||0.05, Glo=Math.log(lo)-gs*0.10, Ghi=Math.log(hi)+gs*0.07;
+  const top=PAD.t, bot=EH-PAD.b, H=bot-top;
+  const y=v=>lerp(bot-(v-Llo)/(Lhi-Llo)*H, bot-(Math.log(v)-Glo)/(Ghi-Glo)*H, view.log);
+  return {y,top,bot,Llo,Lhi,Glo,Ghi};
+}
+function niceTicks(lo,hi,count){
+  const step0=(hi-lo)/count, mag=Math.pow(10,Math.floor(Math.log10(step0))), n=step0/mag;
+  const step=(n<1.5?1:n<3?2:n<7?5:10)*mag, out=[];
+  for(let v=Math.ceil(lo/step)*step; v<=hi+1e-9; v+=step) if(v>0) out.push(v);
+  return out;
+}
+function logTicks(lo,hi){
+  let out=[];
+  for(let e=Math.floor(Math.log10(lo)); e<=Math.ceil(Math.log10(hi)); e++)
+    for(const m of [1,2,5]){ const v=m*Math.pow(10,e); if(v>=lo&&v<=hi) out.push(v); }
+  if(out.length>6) out=out.filter(v=>Math.round(v/Math.pow(10,Math.floor(Math.log10(v))))!==2);
+  if(out.length<2) out=niceTicks(lo,hi,4);
+  return out;
+}
+function xTicks(){
+  const {a,b}=view, span=b-a, out=[];
+  if(span<=30){                                            // short ranges: quarters
+    for(let k=Math.ceil(a);k<=Math.floor(b);k++){ const d=monthOf(k); if(d.m%3===0) out.push({k,t:d.m===0?String(d.y):MON[d.m]}); }
+  } else {
+    const perYear=12/span*plotW(PAD), every=Math.max(1,Math.ceil(64/perYear));
+    for(let k=Math.ceil(a);k<=Math.floor(b);k++){ const d=monthOf(k); if(d.m===0 && d.y%every===0) out.push({k,t:String(d.y)}); }
+  }
+  return out;
+}
+
+function drawEquity(){
+  const c=eqX, w=EW, h=EH; c.clearRect(0,0,w,h);
+  if(!w) return;
+  const mp=yMapper(), {a,b}=view, L=PAD.l, Rx=w-PAD.r;
+
+  // grid + y labels
+  const ticks=view.log>=0.5?logTicks(Math.exp(mp.Glo),Math.exp(mp.Ghi)):niceTicks(mp.Llo,mp.Lhi,4);
+  c.font="500 11px -apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif"; c.textBaseline="middle";
+  for(const v of ticks){
+    const y=mp.y(v); if(y<mp.top-2||y>mp.bot+2) continue;
+    c.fillStyle="rgba(255,255,255,.055)"; c.fillRect(L,Math.round(y)+.5,Rx-L,1);
+    c.fillStyle="rgba(138,129,119,.9)"; c.textAlign="left"; c.fillText(fmtMoney(v),Rx+10,y);
+  }
+  c.textAlign="center"; c.textBaseline="top";
+  for(const t of xTicks()){
+    const x=xk(t.k); if(x<L+14||x>Rx-14) continue;
+    c.fillStyle="rgba(255,255,255,.035)"; c.fillRect(Math.round(x)+.5,mp.top,1,mp.bot-mp.top);
+    c.fillStyle="rgba(92,85,77,1)"; c.fillText(t.t,x,mp.bot+9);
+  }
+
+  // placeholder watermark, drawn INSIDE the chart so screenshots carry it too
+  if(SAMPLE){
+    c.save(); c.textAlign="center"; c.textBaseline="middle";
+    c.font=`600 ${Math.round(clamp(w*0.07,26,64))}px -apple-system,BlinkMacSystemFont,Inter,sans-serif`;
+    c.fillStyle="rgba(228,190,125,.075)"; c.fillText("SAMPLE DATA",(L+Rx)/2,(mp.top+mp.bot)/2);
+    c.font="500 12px -apple-system,BlinkMacSystemFont,Inter,sans-serif"; c.fillStyle="rgba(228,190,125,.28)";
+    c.fillText("not trading results",(L+Rx)/2,(mp.top+mp.bot)/2+clamp(w*0.045,20,40));
+    c.restore();
+  }
+
+  // the series, drawn in as far as the reveal has reached
+  const kEnd=lerp(a,b,easeInOut(reveal));
+  if(kEnd>a+1e-6){
+    c.save(); c.beginPath(); c.rect(L,0,Rx-L,h); c.clip();
+    const pts=[[xk(a),mp.y(eqAt(a))]];
+    for(let k=Math.ceil(a);k<=Math.floor(kEnd);k++) if(k>a) pts.push([xk(k),mp.y(EQ[k])]);
+    pts.push([xk(kEnd),mp.y(eqAt(kEnd))]);
+
+    const g=c.createLinearGradient(0,mp.top,0,mp.bot);
+    g.addColorStop(0,"rgba(228,190,125,.22)"); g.addColorStop(1,"rgba(228,190,125,0)");
+    c.beginPath(); c.moveTo(pts[0][0],mp.bot);
+    for(const p of pts) c.lineTo(p[0],p[1]);
+    c.lineTo(pts[pts.length-1][0],mp.bot); c.closePath(); c.fillStyle=g; c.fill();
+
+    c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));
+    c.lineJoin="round"; c.lineWidth=1.7; c.strokeStyle="#e4be7d";
+    c.shadowColor="rgba(228,190,125,.35)"; c.shadowBlur=8; c.stroke(); c.shadowBlur=0;
+
+    if(reveal<1){                                          // glowing head while drawing in
+      const [hx,hy]=pts[pts.length-1];
+      c.fillStyle="rgba(228,190,125,.25)"; c.beginPath(); c.arc(hx,hy,9,0,Math.PI*2); c.fill();
+      c.fillStyle="#f3d9a6"; c.beginPath(); c.arc(hx,hy,3,0,Math.PI*2); c.fill();
+    }
+    c.restore();
+  }
+
+  // crosshair
+  if(hoverK!==null && reveal>=1){
+    const x=xk(hoverK), y=mp.y(EQ[hoverK]);
+    c.save(); c.setLineDash([3,4]); c.strokeStyle="rgba(239,234,225,.28)"; c.lineWidth=1;
+    c.beginPath(); c.moveTo(Math.round(x)+.5,mp.top); c.lineTo(Math.round(x)+.5,mp.bot); c.stroke();
+    c.beginPath(); c.moveTo(x,Math.round(y)+.5); c.lineTo(Rx,Math.round(y)+.5); c.stroke(); c.restore();
+    c.fillStyle="rgba(228,190,125,.22)"; c.beginPath(); c.arc(x,y,10,0,Math.PI*2); c.fill();
+    c.fillStyle="#0b0a09"; c.beginPath(); c.arc(x,y,4.5,0,Math.PI*2); c.fill();
+    c.strokeStyle="#e4be7d"; c.lineWidth=2; c.stroke();
+    // value pill on the axis
+    const txt=fmtMoney(EQ[hoverK]); c.font="600 11px -apple-system,BlinkMacSystemFont,Inter,sans-serif";
+    const tw=c.measureText(txt).width+14, py=clamp(y,mp.top+9,mp.bot-9);
+    c.fillStyle="#e4be7d"; roundRect(c,Rx+4,py-9,tw,18,9); c.fill();
+    c.fillStyle="#171109"; c.textAlign="left"; c.textBaseline="middle"; c.fillText(txt,Rx+11,py+.5);
+    placeTip(hoverK,x);
+  }
+}
+
+function drawDD(){
+  const c=ddX, w=DW, h=DH; c.clearRect(0,0,w,h);
+  if(!w) return;
+  const {a,b}=view, L=DPAD.l, Rx=w-DPAD.r, top=DPAD.t, bot=h-DPAD.b;
+  let lo=Math.min(ddAt(a),ddAt(b),0), loK=null;
+  for(let k=Math.ceil(a);k<=Math.floor(b);k++) if(DD[k]<lo){ lo=DD[k]; loK=k; }
+  const floor=(lo||-0.01)*1.15, y=v=>top+(v/floor)*(bot-top);
+
+  c.fillStyle="rgba(255,255,255,.07)"; c.fillRect(L,top,Rx-L,1);
+  const kEnd=lerp(a,b,easeInOut(reveal));
+  if(kEnd>a+1e-6){
+    c.save(); c.beginPath(); c.rect(L,0,Rx-L,h); c.clip();
+    const pts=[[xk(a,DPAD),y(ddAt(a))]];
+    for(let k=Math.ceil(a);k<=Math.floor(kEnd);k++) if(k>a) pts.push([xk(k,DPAD),y(DD[k])]);
+    pts.push([xk(kEnd,DPAD),y(ddAt(kEnd))]);
+    c.beginPath(); c.moveTo(pts[0][0],top); pts.forEach(p=>c.lineTo(p[0],p[1]));
+    c.lineTo(pts[pts.length-1][0],top); c.closePath();
+    const g=c.createLinearGradient(0,top,0,bot);
+    g.addColorStop(0,"rgba(233,229,221,.04)"); g.addColorStop(1,"rgba(233,229,221,.20)");
+    c.fillStyle=g; c.fill();
+    c.beginPath(); pts.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));
+    c.strokeStyle="rgba(233,229,221,.55)"; c.lineWidth=1.2; c.stroke();
+    c.restore();
+  }
+  // deepest point in view, labelled on the axis
+  c.font="500 11px -apple-system,BlinkMacSystemFont,Inter,sans-serif"; c.textBaseline="middle"; c.textAlign="left";
+  if(loK!==null && reveal>=1){
+    c.fillStyle="rgba(233,229,221,.7)"; c.fillText(fmtPct(lo,1,false),Rx+10,clamp(y(lo),top+6,bot-6));
+    c.fillStyle="rgba(233,229,221,.9)"; c.beginPath(); c.arc(xk(loK,DPAD),y(lo),2.5,0,Math.PI*2); c.fill();
+  }
+  c.fillStyle="rgba(92,85,77,1)"; c.fillText("0%",Rx+10,top+1);
+  if(hoverK!==null && reveal>=1){
+    const x=xk(hoverK,DPAD);
+    c.save(); c.setLineDash([3,4]); c.strokeStyle="rgba(239,234,225,.28)";
+    c.beginPath(); c.moveTo(Math.round(x)+.5,top); c.lineTo(Math.round(x)+.5,bot); c.stroke(); c.restore();
+    c.fillStyle="#e9e5dd"; c.beginPath(); c.arc(x,y(DD[hoverK]),3,0,Math.PI*2); c.fill();
+  }
+}
+
+function roundRect(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+
+function placeTip(k,x){
+  const ret=k>0?R[k-1]:null, dd=DD[k];
+  const html=`<div class="tip__date">${k===0?"Start · "+labelOf(0):labelOf(k-1)}</div>
+    <div class="tip__row"><span>Balance</span><b>${fmtMoneyFull(EQ[k])}</b></div>
+    ${ret===null?"":`<div class="tip__row"><span>Month</span><b class="${ret>=0?"up":"down"}">${fmtPct(ret,2)}</b></div>`}
+    <div class="tip__row"><span>Drawdown</span><b>${dd<-1e-9?fmtPct(dd,1,false):"at a high"}</b></div>`;
+  if(tip.__k!==k){ tip.innerHTML=html; tip.__k=k; }
+  const tw=tip.offsetWidth, left=x+18+tw>EW-PAD.r ? x-18-tw : x+18;
+  tip.style.left=Math.round(clamp(left,0,EW-tw))+"px"; tip.style.top="12px";
+  tip.setAttribute("data-on","");
+}
+
+function kFromClientX(clientX){
+  const r=eqWrap.getBoundingClientRect(), f=view.a+(clientX-r.left-PAD.l)/plotW(PAD)*(view.b-view.a);
+  return clamp(Math.round(f),Math.ceil(view.a),Math.floor(view.b));
+}
+function onPoint(e){
+  if(reveal<1) return;
+  const k=kFromClientX(e.clientX);
+  if(k!==hoverK){ hoverK=k; dirty=true; kick(); }
+}
+function offPoint(){ hoverK=null; tip.removeAttribute("data-on"); dirty=true; kick(); }
+[eqWrap,ddWrap].forEach(el=>{
+  el.addEventListener("pointermove",onPoint);
+  el.addEventListener("pointerdown",onPoint);
+  el.addEventListener("pointerleave",offPoint);
+});
+
+new IntersectionObserver((es,io)=>{
+  if(es.some(e=>e.isIntersecting)){ if(!REDUCE) revealT0=performance.now(); reveal=REDUCE?1:reveal; kick(); io.disconnect(); }
+},{threshold:.2}).observe(eqWrap);
+
+/* ------------------------------ heatmap ---------------------------------- */
+function cellStyle(v,scale){
+  const t=clamp(Math.abs(v)/scale,0,1);
+  if(v>=0){ const a=0.06+0.74*t; return `background:rgba(228,190,125,${a.toFixed(3)});color:${a>0.52?"#171109":"var(--text)"}`; }
+  return `background:rgba(233,229,221,${(0.05+0.30*t).toFixed(3)})`;
+}
+(function buildHeat(){
+  const first=monthOf(0).y, last=monthOf(N-1).y;
+  let html="<thead><tr><th scope=\"col\"><span class=\"sr\">Year</span></th>"+MON.map(m=>`<th scope="col">${m}</th>`).join("")+"<th scope=\"col\">Year</th></tr></thead><tbody>";
+  for(let y=last,row=0;y>=first;y--,row++){
+    html+=`<tr><th scope="row">${y}</th>`;
+    let g=1, any=false;
+    for(let m=0;m<12;m++){
+      const i=(y-Y0)*12+m-(M0-1), d=row*36+m*11;
+      if(i<0||i>=N){ html+=`<td class="is-empty" style="--d:${d}"></td>`; continue; }
+      const v=R[i]; g*=1+v; any=true;
+      html+=`<td style="--d:${d};${cellStyle(v,0.06)}" title="${MON[m]} ${y}: ${fmtPct(v,2)}">${fmtPct(v,1,false)}</td>`;
+    }
+    html+=any?`<td class="is-year" style="--d:${row*36+132};${cellStyle(g-1,0.30)}" title="${y}: ${fmtPct(g-1,2)}">${fmtPct(g-1,1,false)}</td>`:"<td class=\"is-empty\"></td>";
+    html+="</tr>";
+  }
+  $("#heatTable").innerHTML=html+"</tbody>";
+})();
+new IntersectionObserver((es,io)=>{
+  if(es.some(e=>e.isIntersecting)){ $("#heat").setAttribute("data-in",""); io.disconnect(); }
+},{threshold:.12}).observe($("#heat"));
+
+/* ------------------------------- chrome ---------------------------------- */
+const nav=$("#nav");
+addEventListener("scroll",()=>nav.toggleAttribute("data-scrolled",scrollY>12),{passive:true});
+$("#yr").textContent=new Date().getFullYear();
+resize();
+</script>
+</body>
+</html>

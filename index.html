@@ -88,7 +88,8 @@ a{color:inherit; text-decoration:none}
 .btn--ghost{border-color:var(--hairline-strong); color:var(--text)}
 .btn--ghost:hover{background:rgba(255,255,255,.05); color:var(--text)}
 .nav .btn{padding:9px 17px}
-@media (max-width:860px){ .nav__links{display:none} }
+@media (max-width:860px){ .nav__links{gap:18px; font-size:13px} .nav__in{gap:16px} }
+@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:14px} }
 
 /* ===========================================================================
    HERO
@@ -501,10 +502,11 @@ a{color:inherit; text-decoration:none}
         <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
         <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
       </svg>
-      BazarPeech
+      <span class="brand__name">BazarPeech</span>
     </a>
-    <nav class="nav__links">
+    <nav class="nav__links" aria-label="Primary">
       <a href="#story">The system</a>
+      <a href="statistics/">Statistics</a>
     </nav>
     <button class="btn" type="button" data-join>Join Waitlist</button>
   </div>
@@ -699,6 +701,7 @@ a{color:inherit; text-decoration:none}
         </a>
         <div class="foot__links">
           <a href="#story">The system</a>
+          <a href="statistics/">Statistics</a>
           <a href="#how">How it works</a>
           <a href="#access">Contact</a>
         </div>
@@ -1827,6 +1830,9 @@ function onKey(e){
 
 document.querySelectorAll("[data-join]").forEach(b=>
   b.addEventListener("click",()=>openModal(b)));
+// other pages (e.g. Statistics) link here with #join to open the dialog
+const joinFromHash=()=>{ if(location.hash==="#join"){ openModal(null); history.replaceState(null,"",location.pathname+location.search); } };
+addEventListener("hashchange",joinFromHash); joinFromHash();
 modal.querySelectorAll("[data-close]").forEach(b=>
   b.addEventListener("click",closeModal));
 
