@@ -39,7 +39,9 @@ ssh "$HOST" "set -e
 echo "==> uploading the Statistics page"
 ssh "$HOST" "mkdir -p '${REMOTE}/statistics'"
 scp -q statistics/index.html statistics/results.js "${HOST}:${REMOTE}/statistics/"
-ssh "$HOST" "chown -R www-data:www-data '${REMOTE}/statistics' && chmod 644 '${REMOTE}/statistics/'*"
+ssh "$HOST" "mkdir -p '${REMOTE}/about'"
+scp -q about/index.html "${HOST}:${REMOTE}/about/"
+ssh "$HOST" "chown -R www-data:www-data '${REMOTE}/statistics' '${REMOTE}/about' && chmod 644 '${REMOTE}/statistics/'* '${REMOTE}/about/'*"
 
 echo "==> deployed. verifying"
 curl -fsS -o /dev/null -w "  http  %{http_code}\n" "http://${DOMAIN}/" || echo "  http  no response (DNS not pointed yet?)"

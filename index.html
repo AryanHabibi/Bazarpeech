@@ -11,7 +11,10 @@
 <meta property="og:title" content="BazarPeech — Algorithmic Gold Trading">
 <meta property="og:description" content="A machine-learning trading system for XAU/USD. Entry, target and stop defined before the position opens.">
 <meta property="og:url" content="https://bazarpeech.com/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0a09'/%3E%3Cg stroke='%23e4be7d' stroke-width='2.4'%3E%3Cpath d='M11.5 7v18'/%3E%3Cpath d='M11.5 11.5v9.5' stroke-width='6.5'/%3E%3C/g%3E%3Cg stroke='%23e9e5dd' stroke-width='2.4' fill='none'%3E%3Cpath d='M21.5 9v16'/%3E%3Crect x='18.6' y='13.5' width='5.8' height='7.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%230b0a09'/%3E%3Cpath transform='translate(12 12) scale(.8)' fill='%23e4be7d' d='M10%2010L60%2010L10%2060ZM10%2060L60%2060L10%20110ZM60%2010H85A25%2025%200%200%201%2085%2060A25%2025%200%200%201%2085%20110H60Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@100..900&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Rubik:ital,wght@0,300..900;1,300..900&family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
 <style>
 /* ===========================================================================
    TOKENS
@@ -42,10 +45,10 @@
 html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
 body{
   margin:0; background:var(--bg); color:var(--text);
-  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  font:16px/1.6 Rubik,"IBM Plex Sans Arabic",Estedad,-apple-system,"Segoe UI",sans-serif;
   -webkit-font-smoothing:antialiased; overflow-x:hidden;
 }
-h1,h2,h3{margin:0; font-weight:500; letter-spacing:-.02em; line-height:1.08}
+h1,h2,h3{margin:0; font-family:Spectral,Georgia,serif; font-weight:500; letter-spacing:-.01em; line-height:1.08}
 p{margin:0}
 a{color:inherit; text-decoration:none}
 
@@ -71,7 +74,7 @@ a{color:inherit; text-decoration:none}
 .nav__in{display:flex; align-items:center; gap:32px; width:var(--shell); margin-inline:auto}
 .brand{display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.02em; font-size:14.5px}
 .brand svg{display:block}
-.nav__links{display:flex; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
+.nav__links{display:flex; white-space:nowrap; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
 .nav__links a{transition:color .2s}
 .nav__links a:hover{color:var(--text)}
 
@@ -89,7 +92,8 @@ a{color:inherit; text-decoration:none}
 .btn--ghost:hover{background:rgba(255,255,255,.05); color:var(--text)}
 .nav .btn{padding:9px 17px}
 @media (max-width:860px){ .nav__links{gap:18px; font-size:13px} .nav__in{gap:16px} }
-@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:14px} }
+@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:12px; font-size:12px} .nav__in{gap:12px} }
+@media (max-width:400px){ .nav .btn{padding:7px 10px; font-size:11.5px} .nav__links{gap:9px; font-size:11.5px} .nav__in{gap:9px} }
 
 /* ===========================================================================
    HERO
@@ -498,15 +502,13 @@ a{color:inherit; text-decoration:none}
 <header class="nav" id="nav">
   <div class="nav__in">
     <a class="brand" href="#top">
-      <svg width="17" height="17" viewBox="0 0 32 32" aria-hidden="true">
-        <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
-        <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
-      </svg>
+      <svg width="17" height="17" viewBox="0 0 120 120" aria-hidden="true"><path d="M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z" fill="#e4be7d"/></svg>
       <span class="brand__name">BazarPeech</span>
     </a>
     <nav class="nav__links" aria-label="Primary">
       <a href="#story">The system</a>
       <a href="statistics/">Statistics</a>
+      <a href="about/">About us</a>
     </nav>
     <button class="btn" type="button" data-join>Join Waitlist</button>
   </div>
@@ -693,15 +695,13 @@ a{color:inherit; text-decoration:none}
     <div class="shell">
       <div class="foot__top">
         <a class="brand" href="#top">
-          <svg width="15" height="15" viewBox="0 0 32 32" aria-hidden="true">
-            <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
-            <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
-          </svg>
+          <svg width="15" height="15" viewBox="0 0 120 120" aria-hidden="true"><path d="M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z" fill="#e4be7d"/></svg>
           BazarPeech
         </a>
         <div class="foot__links">
           <a href="#story">The system</a>
           <a href="statistics/">Statistics</a>
+          <a href="about/">About us</a>
           <a href="#how">How it works</a>
           <a href="#access">Contact</a>
         </div>
@@ -844,7 +844,7 @@ a{color:inherit; text-decoration:none}
     /* ------------------------------------------------- relief textures --- */
     function arcText(x, text, r, centre, spread, size, flip){
       x.save();
-      x.font = "700 " + size + "px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif";
+      x.font = "700 " + size + "px Rubik,'IBM Plex Sans Arabic',Estedad,-apple-system,'Segoe UI',sans-serif";
       x.textAlign = "center"; x.textBaseline = "middle"; x.fillStyle = "#f2f2f2";
       const n = text.length;
       for(let i=0;i<n;i++){
@@ -875,17 +875,12 @@ a{color:inherit; text-decoration:none}
         x.fillStyle = "#ededed"; x.fill();
       }
 
-      // brand mark: the same two candles as the favicon, struck in relief
-      const u = S*0.0125;
-      x.strokeStyle = "#f4f4f4"; x.lineCap = "butt";
-      x.lineWidth = u*1.5;
-      x.beginPath(); x.moveTo(-u*7, -u*10); x.lineTo(-u*7, u*9); x.stroke();    // wick
+      // brand mark: the logo, struck in relief
+      const k = S*0.0034;
+      x.save(); x.scale(k,k); x.translate(-60,-60);
       x.fillStyle = "#f4f4f4";
-      x.fillRect(-u*10.5, -u*5.5, u*7, u*13);                                   // solid body
-      x.lineWidth = u*1.5;
-      x.beginPath(); x.moveTo(u*7, -u*8); x.lineTo(u*7, u*11); x.stroke();      // wick
-      x.lineWidth = u*1.3;                                                      // hollow body
-      x.strokeRect(u*3.6, -u*2.5, u*7, u*11);
+      x.fill(new Path2D("M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z"));
+      x.restore();
 
       /* no lettering on the face — just the rings, beads and the struck mark */
 
@@ -1275,7 +1270,7 @@ function resize(){
   dirty=true;
 }
 new ResizeObserver(resize).observe(frame);
-const fs=(px,weight)=>`${weight||500} ${(px*ui).toFixed(1)}px ui-sans-serif,-apple-system,Inter,Segoe UI,sans-serif`;
+const fs=(px,weight)=>`${weight||500} ${(px*ui).toFixed(1)}px Rubik,'IBM Plex Sans Arabic',Estedad,-apple-system,'Segoe UI',sans-serif`;
 
 /* Each card carries a panel of a different height, so no single sticky offset
    suits them all. Centre each one in the free space (desktop) or pin it to the
@@ -1573,15 +1568,21 @@ function drawHud(sc,fx){
 
   ctx.save(); ctx.textBaseline="middle"; ctx.textAlign="left";
   ctx.font=fs(13.5); if("letterSpacing" in ctx) ctx.letterSpacing="0.4px";
-  const symW=ctx.measureText(CFG.symbol).width;
-  ctx.fillStyle="#000";                            // opaque plate: candles never show through the label
-  roundRect(hud.x-7*ui,8*ui,symW+14*ui,33*ui,5*ui); ctx.fill();
-  ctx.fillStyle=rgba(T().text,0.92);
+  // dark glow behind the symbol block so candles passing under it never blur the text
+  const symW=ctx.measureText(CFG.symbol).width+24*ui, gx=hud.x+symW/2-12*ui, gy=26*ui;
+  ctx.save(); ctx.translate(gx,gy); ctx.scale(1,0.55);
+  const glow=ctx.createRadialGradient(0,0,0,0,0,symW*0.95);
+  glow.addColorStop(0,"rgba(0,0,0,0.92)"); glow.addColorStop(0.55,"rgba(0,0,0,0.7)"); glow.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(0,0,symW*0.95,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  ctx.shadowColor="rgba(0,0,0,0.95)"; ctx.shadowBlur=8*ui;
+  ctx.fillStyle=rgba(T().text,0.95);
   ctx.fillText(CFG.symbol,hud.x,19*ui);
 
   ctx.font=fs(8.5); if("letterSpacing" in ctx) ctx.letterSpacing="2.4px";
-  ctx.fillStyle=rgba(T().dim,0.95);
+  ctx.fillStyle=rgba(T().dim,1);
   ctx.fillText(CFG.market,hud.x+1,33*ui);
+  ctx.shadowBlur=0;
 
   ctx.textAlign="right";
   ctx.fillStyle=hot?rgba(T().gold,0.95):rgba(T().dim,0.95);

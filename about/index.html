@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About us — BazarPeech</title>
+<meta name="description" content="The story behind BazarPeech and how to reach the team.">
+<meta name="theme-color" content="#0b0a09">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%230b0a09'/%3E%3Cpath transform='translate(12 12) scale(.8)' fill='%23e4be7d' d='M10%2010L60%2010L10%2060ZM10%2060L60%2060L10%20110ZM60%2010H85A25%2025%200%200%201%2085%2060A25%2025%200%200%201%2085%20110H60Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@100..900&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Rubik:ital,wght@0,300..900;1,300..900&family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+<style>
+/* ===========================================================================
+   TOKENS — identical to the main page
+   ======================================================================== */
+:root{
+  --bg:#0b0a09; --bg-lift:#100e0d; --bg-card:#0f0d0c;
+  --gold:#e4be7d; --gold-deep:#9a763a; --pearl:#e9e5dd;
+  --text:#efeae1; --dim:#8a8177; --faint:#5c554d;
+  --hairline:rgba(255,255,255,.07); --hairline-strong:rgba(255,255,255,.12);
+  --gold-glow:rgba(228,190,125,.16);
+  --shell:min(1240px,calc(100% - 2 * var(--gutter)));
+  --gutter:clamp(20px,5vw,64px);
+  --nav-h:66px;
+  --f-display:clamp(2.15rem,5.1vw,3.95rem);
+  --f-h2:clamp(1.3rem,2.4vw,1.7rem);
+  --f-lead:clamp(1rem,1.5vw,1.175rem);
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:16px/1.6 Rubik,"IBM Plex Sans Arabic",Estedad,-apple-system,"Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+h1,h2,h3{margin:0; font-family:Spectral,Georgia,serif; font-weight:500; letter-spacing:-.01em; line-height:1.08}
+p{margin:0}
+a{color:inherit; text-decoration:none}
+button{font:inherit; color:inherit}
+.shell{width:var(--shell); margin-inline:auto}
+.eyebrow{font-size:9.5px; letter-spacing:.28em; text-transform:uppercase; color:var(--dim); font-weight:500}
+.rule{height:1px; background:var(--hairline); border:0; margin:0}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* ============================== NAV ===================================== */
+.nav{
+  position:fixed; inset-block-start:0; inset-inline:0; z-index:50; height:var(--nav-h);
+  display:flex; align-items:center;
+  background:rgba(11,10,9,.72); backdrop-filter:blur(14px) saturate(140%); -webkit-backdrop-filter:blur(14px) saturate(140%);
+  border-block-end:1px solid transparent; transition:border-color .3s, background .3s;
+}
+.nav[data-scrolled]{border-block-end-color:var(--hairline); background:rgba(11,10,9,.9)}
+.nav__in{display:flex; align-items:center; gap:32px; width:var(--shell); margin-inline:auto}
+.brand{display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.02em; font-size:14.5px}
+.brand svg{display:block}
+.nav__links{display:flex; white-space:nowrap; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
+.nav__links a{position:relative; transition:color .2s}
+.nav__links a:hover,.nav__links a[aria-current="page"]{color:var(--text)}
+.nav__links a[aria-current="page"]::after{
+  content:""; position:absolute; inset-inline:0; inset-block-end:-7px; height:1px; background:var(--gold);
+}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:11px 20px; border-radius:999px;
+  font-size:13.5px; font-weight:500; border:1px solid var(--gold); color:var(--gold); background:transparent;
+  transition:background .25s, color .25s, transform .15s; white-space:nowrap; cursor:pointer;
+}
+.btn:hover{background:var(--gold); color:#120e07}
+.nav .btn{padding:9px 17px}
+@media (max-width:860px){ .nav__links{gap:18px; font-size:13px} .nav__in{gap:16px} }
+@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:12px; font-size:12px} .nav__in{gap:12px} }
+@media (max-width:400px){ .nav .btn{padding:7px 10px; font-size:11.5px} .nav__links{gap:9px; font-size:11.5px} .nav__in{gap:9px} }
+
+/* ============================ PAGE HEAD ================================= */
+.head{padding-block:calc(var(--nav-h) + clamp(48px,9vh,96px)) clamp(28px,5vh,48px); position:relative}
+.head::before{
+  content:""; position:absolute; inset-block-start:-30%; inset-inline-end:-10%;
+  width:60vw; height:60vw; pointer-events:none;
+  background:radial-gradient(circle, var(--gold-glow), transparent 62%);
+}
+.head h1{font-size:var(--f-display); margin-block:18px 20px; position:relative}
+.head h1 em{font-style:normal; color:var(--gold)}
+.head .lead{font-size:var(--f-lead); color:var(--dim); max-width:58ch; position:relative}
+.meta{display:flex; flex-wrap:wrap; gap:10px 22px; margin-block-start:22px; font-size:12.5px; color:var(--faint); position:relative}
+.meta b{color:var(--dim); font-weight:500}
+
+
+/* ============================== ABOUT =================================== */
+.sec{padding-block:clamp(40px,7vh,72px); border-block-start:1px solid var(--hairline)}
+.sec__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:clamp(24px,5vw,72px)}
+.sec h2{font-size:var(--f-h2); margin-block-start:12px}
+.story p{font-size:var(--f-lead); color:var(--dim); max-width:62ch}
+.story p+p{margin-block-start:1.1em}
+.people{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
+.person{border:1px solid var(--hairline); border-radius:16px; padding:22px 22px 20px; transition:border-color .25s, background .25s}
+.person:hover{border-color:var(--hairline-strong); background:var(--bg-lift)}
+.person h3{font-size:1.35rem}
+.person a{display:inline-block; margin-block-start:10px; color:var(--gold); font-size:14px; overflow-wrap:anywhere}
+.person a:hover{text-decoration:underline; text-underline-offset:3px}
+@media (max-width:760px){ .sec__grid{grid-template-columns:1fr} }
+.foot{margin-block-start:clamp(56px,9vh,96px); padding-block:44px 56px; border-block-start:1px solid var(--hairline); font-size:13px; color:var(--faint)}
+.foot__top{display:flex; flex-wrap:wrap; gap:22px; align-items:center; margin-block-end:28px}
+.foot__links{display:flex; gap:22px; margin-inline-start:auto}
+.foot__links a:hover{color:var(--text)}
+.disclaimer{max-width:78ch; line-height:1.7}
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="nav__in">
+    <a class="brand" href="../">
+      <svg width="17" height="17" viewBox="0 0 120 120" aria-hidden="true"><path d="M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z" fill="#e4be7d"/></svg>
+      <span class="brand__name">BazarPeech</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="../#story">The system</a>
+      <a href="../statistics/">Statistics</a>
+      <a href="./" aria-current="page">About us</a>
+    </nav>
+    <a class="btn" href="../#join">Join Waitlist</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="head">
+    <div class="shell">
+      <p class="eyebrow">About us</p>
+      <h1>Two traders, <em>one rulebook</em>.</h1>
+      <p class="lead">BazarPeech is a small, independent project built by two people who wanted gold trading to run on rules instead of nerves.</p>
+    </div>
+  </section>
+
+  <section class="sec" id="journey">
+    <div class="shell sec__grid">
+      <div><p class="eyebrow">01</p><h2>Our Journey</h2></div>
+      <div class="story">
+        <p>It started with a spreadsheet. Aryan and Soroush were both trading gold on the side, and after a rough stretch they sat down to compare notes. The losing trades rarely came from bad analysis — they came from moving a stop at the last second, doubling down on a hunch, or closing a winner too early out of fear.</p>
+        <p>So they began writing their decisions down before taking them: where to enter, where to take profit, where to admit they were wrong, and how much to risk. The rules held up far better than their instincts did. The obvious next step was to let a program follow those rules, and then to let machine-learning models do the part humans are slowest at — reading trend, volatility and news across thousands of candles at once.</p>
+        <p>BazarPeech is what grew out of those late-night sessions: a system that fixes entry, target and stop before a position opens and then executes them without second-guessing. We are still testing, measuring and tightening it, and we would rather publish honest numbers late than impressive numbers early.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="contact">
+    <div class="shell sec__grid">
+      <div><p class="eyebrow">02</p><h2>Contact us</h2></div>
+      <div class="people">
+        <div class="person"><h3>Aryan Habibi</h3><a href="mailto:aryan.habibi1374@gmail.com">aryan.habibi1374@gmail.com</a></div>
+        <div class="person"><h3>Soroush Pournasiri</h3><a href="mailto:seenpeh@gmail.com">seenpeh@gmail.com</a></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="shell">
+    <div class="foot__top">
+      <a class="brand" href="../">
+        <svg width="15" height="15" viewBox="0 0 120 120" aria-hidden="true"><path d="M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z" fill="#e4be7d"/></svg>
+        BazarPeech
+      </a>
+      <div class="foot__links">
+        <a href="../#story">The system</a>
+        <a href="../statistics/">Statistics</a>
+        <a href="./">About us</a>
+        <a href="../#join">Contact</a>
+      </div>
+    </div>
+    <hr class="rule">
+    <p class="disclaimer" style="margin-block-start:24px">
+      <strong style="color:var(--dim); font-weight:500">Risk warning.</strong>
+      Trading gold and other leveraged instruments carries a high level of risk
+      and can result in the loss of more than your initial deposit. Automated
+      systems do not remove that risk. Past performance, including any
+      backtested or simulated result, is not a reliable indicator of future
+      results. Nothing on this page is investment advice. Only trade with
+      capital you can afford to lose.
+    </p>
+    <p style="margin-block-start:18px">© <span id="yr">2026</span> BazarPeech.</p>
+  </div>
+</footer>
+
+<script>
+document.getElementById("yr").textContent=new Date().getFullYear();
+const nav=document.getElementById("nav");
+addEventListener("scroll",()=>nav.toggleAttribute("data-scrolled",scrollY>12),{passive:true});
+</script>
+</body>
+</html>

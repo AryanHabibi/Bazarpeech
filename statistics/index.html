@@ -6,7 +6,10 @@
 <title>Statistics — BazarPeech</title>
 <meta name="description" content="Equity curve, drawdowns and month-by-month returns for the BazarPeech XAU/USD trading system.">
 <meta name="theme-color" content="#0b0a09">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0a09'/%3E%3Cg stroke='%23e4be7d' stroke-width='2.4'%3E%3Cpath d='M11.5 7v18'/%3E%3Cpath d='M11.5 11.5v9.5' stroke-width='6.5'/%3E%3C/g%3E%3Cg stroke='%23e9e5dd' stroke-width='2.4' fill='none'%3E%3Cpath d='M21.5 9v16'/%3E%3Crect x='18.6' y='13.5' width='5.8' height='7.5'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Crect width='120' height='120' rx='26' fill='%230b0a09'/%3E%3Cpath transform='translate(12 12) scale(.8)' fill='%23e4be7d' d='M10%2010L60%2010L10%2060ZM10%2060L60%2060L10%20110ZM60%2010H85A25%2025%200%200%201%2085%2060A25%2025%200%200%201%2085%20110H60Z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Estedad:wght@100..900&family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&family=Rubik:ital,wght@0,300..900;1,300..900&family=Spectral:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
 <style>
 /* ===========================================================================
    TOKENS — identical to the main page
@@ -29,10 +32,10 @@
 html{scroll-behavior:smooth; -webkit-text-size-adjust:100%}
 body{
   margin:0; background:var(--bg); color:var(--text);
-  font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  font:16px/1.6 Rubik,"IBM Plex Sans Arabic",Estedad,-apple-system,"Segoe UI",sans-serif;
   -webkit-font-smoothing:antialiased; overflow-x:hidden;
 }
-h1,h2,h3{margin:0; font-weight:500; letter-spacing:-.02em; line-height:1.08}
+h1,h2,h3{margin:0; font-family:Spectral,Georgia,serif; font-weight:500; letter-spacing:-.01em; line-height:1.08}
 p{margin:0}
 a{color:inherit; text-decoration:none}
 button{font:inherit; color:inherit}
@@ -53,7 +56,7 @@ button{font:inherit; color:inherit}
 .nav__in{display:flex; align-items:center; gap:32px; width:var(--shell); margin-inline:auto}
 .brand{display:flex; align-items:center; gap:9px; font-weight:600; letter-spacing:.02em; font-size:14.5px}
 .brand svg{display:block}
-.nav__links{display:flex; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
+.nav__links{display:flex; white-space:nowrap; gap:28px; margin-inline-start:auto; font-size:13.5px; color:var(--dim)}
 .nav__links a{position:relative; transition:color .2s}
 .nav__links a:hover,.nav__links a[aria-current="page"]{color:var(--text)}
 .nav__links a[aria-current="page"]::after{
@@ -67,7 +70,8 @@ button{font:inherit; color:inherit}
 .btn:hover{background:var(--gold); color:#120e07}
 .nav .btn{padding:9px 17px}
 @media (max-width:860px){ .nav__links{gap:18px; font-size:13px} .nav__in{gap:16px} }
-@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:14px} }
+@media (max-width:480px){ .brand__name{display:none} .nav .btn{padding:8px 13px; font-size:12.5px} .nav__links{gap:12px; font-size:12px} .nav__in{gap:12px} }
+@media (max-width:400px){ .nav .btn{padding:7px 10px; font-size:11.5px} .nav__links{gap:9px; font-size:11.5px} .nav__in{gap:9px} }
 
 /* ============================ PAGE HEAD ================================= */
 .head{padding-block:calc(var(--nav-h) + clamp(48px,9vh,96px)) clamp(28px,5vh,48px); position:relative}
@@ -227,15 +231,13 @@ button{font:inherit; color:inherit}
 <header class="nav" id="nav">
   <div class="nav__in">
     <a class="brand" href="../">
-      <svg width="17" height="17" viewBox="0 0 32 32" aria-hidden="true">
-        <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
-        <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
-      </svg>
+      <svg width="17" height="17" viewBox="0 0 120 120" aria-hidden="true"><path d="M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z" fill="#e4be7d"/></svg>
       <span class="brand__name">BazarPeech</span>
     </a>
     <nav class="nav__links" aria-label="Primary">
       <a href="../#story">The system</a>
       <a href="./" aria-current="page">Statistics</a>
+      <a href="../about/">About us</a>
     </nav>
     <a class="btn" href="../#join">Join Waitlist</a>
   </div>
@@ -354,15 +356,13 @@ button{font:inherit; color:inherit}
   <div class="shell">
     <div class="foot__top">
       <a class="brand" href="../">
-        <svg width="15" height="15" viewBox="0 0 32 32" aria-hidden="true">
-          <g stroke="#e4be7d" stroke-width="2.6"><path d="M11.5 7v18"/><path d="M11.5 11.5v9.5" stroke-width="7"/></g>
-          <g stroke="#e9e5dd" stroke-width="2.6" fill="none"><path d="M21.5 9v16"/><rect x="18.6" y="13.5" width="5.8" height="7.5"/></g>
-        </svg>
+        <svg width="15" height="15" viewBox="0 0 120 120" aria-hidden="true"><path d="M10 10L60 10L10 60ZM10 60L60 60L10 110ZM60 10H85A25 25 0 0 1 85 60A25 25 0 0 1 85 110H60Z" fill="#e4be7d"/></svg>
         BazarPeech
       </a>
       <div class="foot__links">
         <a href="../#story">The system</a>
         <a href="./">Statistics</a>
+        <a href="../about/">About us</a>
         <a href="../#join">Contact</a>
       </div>
     </div>
@@ -697,7 +697,7 @@ function drawEquity(){
 
   // grid + y labels
   const ticks=view.log>=0.5?logTicks(Math.exp(mp.Glo),Math.exp(mp.Ghi)):niceTicks(mp.Llo,mp.Lhi,4);
-  c.font="500 11px -apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif"; c.textBaseline="middle";
+  c.font="500 11px Rubik,sans-serif"; c.textBaseline="middle";
   for(const v of ticks){
     const y=mp.y(v); if(y<mp.top-2||y>mp.bot+2) continue;
     c.fillStyle="rgba(255,255,255,.055)"; c.fillRect(L,Math.round(y)+.5,Rx-L,1);
@@ -713,9 +713,9 @@ function drawEquity(){
   // placeholder watermark, drawn INSIDE the chart so screenshots carry it too
   if(SAMPLE){
     c.save(); c.textAlign="center"; c.textBaseline="middle";
-    c.font=`600 ${Math.round(clamp(w*0.07,26,64))}px -apple-system,BlinkMacSystemFont,Inter,sans-serif`;
+    c.font=`600 ${Math.round(clamp(w*0.07,26,64))}px Rubik,sans-serif`;
     c.fillStyle="rgba(228,190,125,.075)"; c.fillText("SAMPLE DATA",(L+Rx)/2,(mp.top+mp.bot)/2);
-    c.font="500 12px -apple-system,BlinkMacSystemFont,Inter,sans-serif"; c.fillStyle="rgba(228,190,125,.28)";
+    c.font="500 12px Rubik,sans-serif"; c.fillStyle="rgba(228,190,125,.28)";
     c.fillText("not trading results",(L+Rx)/2,(mp.top+mp.bot)/2+clamp(w*0.045,20,40));
     c.restore();
   }
@@ -756,7 +756,7 @@ function drawEquity(){
     c.fillStyle="#0b0a09"; c.beginPath(); c.arc(x,y,4.5,0,Math.PI*2); c.fill();
     c.strokeStyle="#e4be7d"; c.lineWidth=2; c.stroke();
     // value pill on the axis
-    const txt=fmtMoney(EQ[hoverK]); c.font="600 11px -apple-system,BlinkMacSystemFont,Inter,sans-serif";
+    const txt=fmtMoney(EQ[hoverK]); c.font="600 11px Rubik,sans-serif";
     const tw=c.measureText(txt).width+14, py=clamp(y,mp.top+9,mp.bot-9);
     c.fillStyle="#e4be7d"; roundRect(c,Rx+4,py-9,tw,18,9); c.fill();
     c.fillStyle="#171109"; c.textAlign="left"; c.textBaseline="middle"; c.fillText(txt,Rx+11,py+.5);
@@ -789,7 +789,7 @@ function drawDD(){
     c.restore();
   }
   // deepest point in view, labelled on the axis
-  c.font="500 11px -apple-system,BlinkMacSystemFont,Inter,sans-serif"; c.textBaseline="middle"; c.textAlign="left";
+  c.font="500 11px Rubik,sans-serif"; c.textBaseline="middle"; c.textAlign="left";
   if(loK!==null && reveal>=1){
     c.fillStyle="rgba(233,229,221,.7)"; c.fillText(fmtPct(lo,1,false),Rx+10,clamp(y(lo),top+6,bot-6));
     c.fillStyle="rgba(233,229,221,.9)"; c.beginPath(); c.arc(xk(loK,DPAD),y(lo),2.5,0,Math.PI*2); c.fill();
