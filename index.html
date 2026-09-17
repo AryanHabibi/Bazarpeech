@@ -526,7 +526,7 @@ a{color:inherit; text-decoration:none}
       </p>
       <div class="hero__cta">
         <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
-        <a class="btn btn--ghost" href="#story">See how it trades</a>
+        <a class="btn btn--ghost" href="statistics/">Show statistics</a>
       </div>
       <dl class="hero__meta">
         <div><dt>Instrument</dt><dd>XAU/USD spot gold</dd></div>
@@ -591,11 +591,11 @@ a{color:inherit; text-decoration:none}
             <dl class="calc">
               <dt data-row="0">Account</dt><dd data-row="0">$10,000</dd>
               <dt data-row="1">Risk per trade</dt><dd data-row="1">1.0%</dd>
-              <dt data-row="2">Stop distance</dt><dd data-row="2" data-bind="stop">1.9%</dd>
+              <dt data-row="2">Stop distance</dt><dd data-row="2" data-bind="stop">456 pips</dd>
               <dt data-row="3">Trend confidence</dt><dd data-row="3"><span data-bind="conf">80%</span><small data-bind="confx">×0.90</small></dd>
               <dt data-row="4">Volatility</dt><dd data-row="4">Normal<small>×1.00</small></dd>
             </dl>
-            <div class="calc__total"><span>Position size</span><b data-bind="size">$0</b></div>
+            <div class="calc__total"><span>Position size</span><b data-bind="size">0.00 lots</b></div>
           </div>
         </div></div>
       </article>
@@ -654,7 +654,7 @@ a{color:inherit; text-decoration:none}
           <span class="flow__n">03</span>
           <h3>Money management</h3>
           <p>Sizes the position from trend confidence and stop distance.</p>
-          <span class="flow__stat" data-bind="flow-size">$4,727 position</span>
+          <span class="flow__stat" data-bind="flow-size">0.02 lots</span>
         </li>
         <li class="flow__step" style="--i:3">
           <span class="flow__node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5h11v14H6a1 1 0 0 1-1-1z"/><path d="M16 9h3v9a1 1 0 0 1-1 1h-2"/><path d="M8 9h5M8 12h5M8 15h3"/></svg></span>
@@ -1114,7 +1114,8 @@ const CFG = {
 
   /* Money management on an EXAMPLE account — illustrates the rule, claims
      nothing about returns. Stop distance comes from the trade itself. */
-  sizing: { account: 10000, riskPerTrade: 0.01, volatilityFactor: 1.00 },
+  sizing: { account: 10000, riskPerTrade: 0.01, volatilityFactor: 1.00,
+            refPrice: 2400, pip: 0.10, contract: 100 },   // XAU/USD: 1 pip = $0.10, 1 lot = 100 oz
 
   /* Illustrative headlines and their weight on gold (+ bullish, − bearish). */
   news:   [0.35, 0.30, -0.15],
@@ -1241,9 +1242,10 @@ function trendAt(R){                               // R = revealed count, fracti
 /* Everything downstream of the trigger is derived from these, not typed in. */
 const CONF = UP[DATA.featured.entryIndex];         // trend confidence at the trigger
 const SIZE = (()=>{
-  const {account,riskPerTrade,volatilityFactor}=CFG.sizing, stop=CFG.trade.riskPct;
+  const {account,riskPerTrade,volatilityFactor,refPrice,pip,contract}=CFG.sizing;
+  const stopUsd=refPrice*CFG.trade.riskPct;        // per oz
   const confx=0.5+0.5*CONF;                        // half size at no conviction, full at certainty
-  return {stop, confx, notional: account*riskPerTrade/stop*confx*volatilityFactor};
+  return {pips: stopUsd/pip, confx, lots: account*riskPerTrade/(stopUsd*contract)*confx*volatilityFactor};
 })();
 const NET = CFG.news.reduce((a,b)=>a+b,0);
 
@@ -1571,6 +1573,9 @@ function drawHud(sc,fx){
 
   ctx.save(); ctx.textBaseline="middle"; ctx.textAlign="left";
   ctx.font=fs(13.5); if("letterSpacing" in ctx) ctx.letterSpacing="0.4px";
+  const symW=ctx.measureText(CFG.symbol).width;
+  ctx.fillStyle="#000";                            // opaque plate: candles never show through the label
+  roundRect(hud.x-7*ui,8*ui,symW+14*ui,33*ui,5*ui); ctx.fill();
   ctx.fillStyle=rgba(T().text,0.92);
   ctx.fillText(CFG.symbol,hud.x,19*ui);
 
@@ -1653,7 +1658,7 @@ function meter(el,frac,text){
 // fixed values, derived once from the data rather than typed into the markup
 qa('[data-bind="conf"]').forEach(el=>el.textContent=pct(CONF));
 setText(q('[data-bind="confx"]'),"×"+SIZE.confx.toFixed(2));
-setText(q('[data-bind="stop"]'),(SIZE.stop*100).toFixed(1)+"%");
+setText(q('[data-bind="stop"]'),Math.round(SIZE.pips)+" pips");
 
 function updatePanels(sc){
   // §1 — memberships follow the candles on screen
@@ -1667,7 +1672,7 @@ function updatePanels(sc){
 
   // §3 — inputs light up one by one, then the size counts up
   PANEL.rows.forEach(el=>setOn(el, sc.size >= (+el.dataset.row+1)/7));
-  setText(PANEL.size, money(SIZE.notional*easeOutCubic(inv(sc.size,0.72,1))));
+  setText(PANEL.size, (SIZE.lots*easeOutCubic(inv(sc.size,0.72,1))).toFixed(2)+" lots");
 
   // §4 — each headline arrives and adds its weight; then the decision
   const n=CFG.news.length;
@@ -1698,7 +1703,7 @@ addEventListener("load",layoutFlow);
 /* Carries the story's own numbers, then plays once when it first comes into
    view — a recap, so it shouldn't replay every time it scrolls past. */
 setText(q('[data-bind="flow-trend"]'), "Uptrend "+pct(CONF));
-setText(q('[data-bind="flow-size"]'),  money(SIZE.notional)+" position");
+setText(q('[data-bind="flow-size"]'),  SIZE.lots.toFixed(2)+" lots");
 setText(q('[data-bind="flow-net"]'),   "Net "+(NET>=0?"+":"")+NET.toFixed(2));
 (()=>{
   const flow=document.getElementById("how");
@@ -1717,7 +1722,7 @@ const nav   = document.getElementById("nav");
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const SECTIONS = beats.length;                      // 4
 
-let scrollP=0, autoP=0, autoFrom=null, autoDone=reduce, dirty=true, lastP=-1;
+let scrollP=0, lastY=scrollY, autoP=0, autoFrom=null, autoDone=reduce, dirty=true, lastP=-1;
 
 /* p = k + how far the viewport's centre line is through section k. Measured
    against each section's own box — not the story's total scroll distance
@@ -1762,7 +1767,14 @@ function setActiveBeat(p){
   });
 }
 
-addEventListener("scroll",()=>{ scrollP=scrollProgress(); dirty=true; },{passive:true});
+addEventListener("scroll",()=>{
+  scrollP=scrollProgress(); dirty=true;
+  // autoplay holds §1 forward as a floor; scrolling back up shrinks that floor in
+  // proportion to page position, so the chart rewinds smoothly to 0 at the top
+  const y=scrollY;
+  if(autoP>0 && y<lastY){ autoDone=true; autoP=lastY>0?autoP*y/lastY:0; if(autoP<=scrollP) autoP=0; }
+  lastY=y;
+},{passive:true});
 addEventListener("resize",()=>{ scrollP=scrollProgress(); dirty=true; });   // ResizeObserver re-lays out
 PHONE.addEventListener("change",resize);            // rotating / resizing across the breakpoint
 addEventListener("load",resize);                   // web fonts can change card heights
