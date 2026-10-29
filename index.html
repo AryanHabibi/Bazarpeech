@@ -522,7 +522,7 @@ button{font:inherit; color:inherit}
       <span class="brand__name">BazarPeech</span>
     </a>
     <nav class="nav__links" aria-label="Primary">
-      <a href="#story">The system</a>
+      <a href="#system">The system</a>
       <a href="statistics/">Statistics</a>
       <a href="about/">About us</a>
     </nav>
@@ -547,7 +547,7 @@ button{font:inherit; color:inherit}
       </p>
       <div class="hero__cta">
         <button class="btn btn--solid" type="button" data-join>Collaboration</button>
-        <a class="btn btn--ghost" href="#story">Explore Midas</a>
+        <a class="btn btn--ghost" href="#system">Explore Midas</a>
       </div>
       <dl class="hero__meta">
         <div><dt>Market</dt><dd>XAU/USD &middot; Gold</dd></div>
@@ -564,7 +564,7 @@ button{font:inherit; color:inherit}
   </section>
 
   <!-- ======================= SCROLL STORY ======================= -->
-  <section class="story" id="story">
+  <section class="story" id="system">
     <div class="story__media">
       <div class="chart-frame" id="chartFrame">
         <canvas id="chart"></canvas>
@@ -727,7 +727,7 @@ button{font:inherit; color:inherit}
           BazarPeech
         </a>
         <div class="foot__links">
-          <a href="#story">The system</a>
+          <a href="#system">The system</a>
           <a href="statistics/">Statistics</a>
           <a href="about/">About us</a>
           <a href="#how">How it works</a>
@@ -1321,7 +1321,7 @@ const PHONE = matchMedia("(max-width: 900px)");
 const MIN_CHART = 210;
 function layoutStory(){
   if(typeof beats==="undefined") return;
-  const slot=document.getElementById("storySlot"), story=document.getElementById("story");
+  const slot=document.getElementById("storySlot"), story=document.getElementById("system");
   const phone=PHONE.matches;
   beats.forEach(b=>{
     const card=b.__card || (b.__card=b.querySelector(".beat__card"));
