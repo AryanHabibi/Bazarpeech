@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-BazarPeech waitlist endpoint.
+BazarPeech collaboration endpoint.
 
-Listens on localhost only; nginx proxies /api/waitlist to it. Takes an email,
-appends it to a file on disk, then notifies Telegram.
+Listens on localhost only; nginx proxies /api/waitlist to it (the URL path
+is unchanged — only the service's internal name was "waitlist"). Takes an
+email, appends it to a file on disk, then notifies Telegram.
 
 The bot token is read from the environment (systemd EnvironmentFile), never
 from the page and never from this file — anything in the page's JavaScript is
@@ -16,7 +17,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 TOKEN = os.environ.get("BOT_TOKEN", "").strip()
 CHATS = [c.strip() for c in os.environ.get("CHAT_IDS", "").split(",") if c.strip()]
-STORE = os.path.join(os.environ.get("STATE_DIRECTORY", "/var/lib/bazarpeech"), "waitlist.tsv")
+STORE = os.path.join(os.environ.get("STATE_DIRECTORY", "/var/lib/bazarpeech"), "collaboration.tsv")
 PORT  = int(os.environ.get("PORT", "8787"))
 
 MAX_BODY = 4096
@@ -39,7 +40,7 @@ def notify(email, ip):
     if not TOKEN or not CHATS:
         return 0, ["not configured"]
     text = (
-        "New waitlist signup\n\n"
+        "New collaboration inquiry\n\n"
         f"Email: {email}\n"
         f"Time:  {time.strftime('%Y-%m-%d %H:%M:%S %Z')}\n"
         f"IP:    {ip}"
@@ -133,21 +134,21 @@ class Handler(BaseHTTPRequestHandler):
         try:
             record(email, ip, self.headers.get("User-Agent", ""))
         except Exception as e:                                  # noqa: BLE001
-            print(f"[waitlist] store failed: {e}", flush=True)
+            print(f"[collaboration] store failed: {e}", flush=True)
 
         delivered, failures = notify(email, ip)
         for f in failures:
-            print(f"[waitlist] telegram NOT delivered for {email} -> {f}", flush=True)
+            print(f"[collaboration] telegram NOT delivered for {email} -> {f}", flush=True)
         if delivered:
-            print(f"[waitlist] {email} delivered to {delivered}/{len(CHATS)} recipient(s)", flush=True)
+            print(f"[collaboration] {email} delivered to {delivered}/{len(CHATS)} recipient(s)", flush=True)
         # The signup is on disk either way, so the visitor always sees success.
         self._json(200, {"ok": True, "notified": delivered > 0})
 
     def log_message(self, fmt, *args):
-        print(f"[waitlist] {self.address_string()} {fmt % args}", flush=True)
+        print(f"[collaboration] {self.address_string()} {fmt % args}", flush=True)
 
 if __name__ == "__main__":
-    print(f"[waitlist] listening on 127.0.0.1:{PORT}; "
+    print(f"[collaboration] listening on 127.0.0.1:{PORT}; "
           f"telegram {'configured' if TOKEN and CHATS else 'NOT configured'}; "
           f"store={STORE}", flush=True)
     ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()

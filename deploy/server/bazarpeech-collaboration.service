@@ -1,11 +1,11 @@
 [Unit]
-Description=BazarPeech waitlist endpoint
+Description=BazarPeech collaboration endpoint
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/bazarpeech/waitlist.py
-EnvironmentFile=/etc/bazarpeech/waitlist.env
+ExecStart=/usr/bin/python3 /opt/bazarpeech/collaboration.py
+EnvironmentFile=/etc/bazarpeech/collaboration.env
 DynamicUser=yes
 StateDirectory=bazarpeech
 Restart=on-failure
