@@ -188,6 +188,21 @@ a{color:inherit; text-decoration:none}
   margin-block-start:calc(-1 * (100dvh - var(--nav-h)));   /* keep in step with .story__media */
   pointer-events:none;
 }
+/* Above .story__copy (z-index 2) so it reads over "01 — Trend" on arrival;
+   JS fades its opacity to 0 across the first stretch of beat 0. */
+.hud-symbol{
+  position:sticky; inset-block-start:var(--nav-h); height:0; z-index:3;
+  pointer-events:none; transition:opacity .2s linear;
+}
+.hud-symbol .shell{padding-block-start:19px}
+.hud-symbol__a{
+  margin:0; font-size:13.5px; color:var(--text);
+  text-shadow:0 2px 14px rgba(0,0,0,.95), 0 0 26px rgba(0,0,0,.7);
+}
+.hud-symbol__b{
+  margin:6px 0 0; font-size:8.5px; letter-spacing:.24em; text-transform:uppercase;
+  color:var(--dim); text-shadow:0 2px 14px rgba(0,0,0,.95);
+}
 .beat{
   min-height:130vh;                     /* taller beat = slower scrub */
   opacity:0; transition:opacity .55s ease;
@@ -506,11 +521,11 @@ a{color:inherit; text-decoration:none}
       <span class="brand__name">BazarPeech</span>
     </a>
     <nav class="nav__links" aria-label="Primary">
-      <a href="#story">The system</a>
+      <a href="#story">The System</a>
       <a href="statistics/">Statistics</a>
-      <a href="about/">About us</a>
+      <a href="about/">About Us</a>
     </nav>
-    <button class="btn" type="button" data-join>Join Waitlist</button>
+    <button class="btn" type="button" data-join>Collaboration</button>
   </div>
 </header>
 
@@ -520,20 +535,23 @@ a{color:inherit; text-decoration:none}
   <section class="hero">
    <div class="shell hero__grid">
     <div class="hero__in">
-      <h1>The mind of a master trader.<br>The speed of a <em>machine</em>.</h1>
+      <h1>Trading insight.<br>Systematic <em>decisions</em>.</h1>
       <p>
-        BazarPeech runs machine-learning models over XAU/USD price action. Entry,
-        target and stop are fixed before the position opens — and the robot
-        executes them exactly, on every trade, without discretion.
+        Meet Midas, our Python-based trading system for gold (XAU/USD).
+        Combining fuzzy logic, defined entry signals, and adaptive risk
+        management, Midas translates trading experience into a structured
+        decision process. We&rsquo;re developing and testing it across
+        approximately 20 years of market data, refining how it assesses
+        direction and manages exposure.
       </p>
       <div class="hero__cta">
-        <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
-        <a class="btn btn--ghost" href="statistics/">Show statistics</a>
+        <button class="btn btn--solid" type="button" data-join>Collaboration</button>
+        <a class="btn btn--ghost" href="#story">Explore Midas</a>
       </div>
       <dl class="hero__meta">
-        <div><dt>Instrument</dt><dd>XAU/USD spot gold</dd></div>
-        <div><dt>Method</dt><dd>ML signal + rule-based risk</dd></div>
-        <div><dt>Execution</dt><dd>Fully automated</dd></div>
+        <div><dt>Market</dt><dd>XAU/USD &middot; Gold</dd></div>
+        <div><dt>Approach</dt><dd>Fuzzy logic &middot; Adaptive risk</dd></div>
+        <div><dt>Status</dt><dd>Ongoing development &amp; testing</dd></div>
       </dl>
     </div>
 
@@ -551,6 +569,15 @@ a{color:inherit; text-decoration:none}
         <canvas id="chart"></canvas>
       </div>
       <div class="story__slot" id="storySlot"></div>
+    </div>
+
+    <!-- Sits above the beat cards at first (so it reads clearly over "01 —
+         Trend"), then fades out on scroll until the card is fully revealed. -->
+    <div class="hud-symbol" id="hudSymbol" aria-hidden="true">
+      <div class="shell">
+        <p class="hud-symbol__a">XAU/USD</p>
+        <p class="hud-symbol__b">SPOT GOLD</p>
+      </div>
     </div>
 
     <div class="story__copy" id="beats">
@@ -593,7 +620,7 @@ a{color:inherit; text-decoration:none}
             <dl class="calc">
               <dt data-row="0">Account</dt><dd data-row="0">$10,000</dd>
               <dt data-row="1">Risk per trade</dt><dd data-row="1">1.0%</dd>
-              <dt data-row="2">Stop distance</dt><dd data-row="2" data-bind="stop">456 pips</dd>
+              <dt data-row="2">Stop distance</dt><dd data-row="2" data-bind="stop">456 pipette</dd>
               <dt data-row="3">Trend confidence</dt><dd data-row="3"><span data-bind="conf">80%</span><small data-bind="confx">×0.90</small></dd>
               <dt data-row="4">Volatility</dt><dd data-row="4">Normal<small>×1.00</small></dd>
             </dl>
@@ -680,13 +707,13 @@ a{color:inherit; text-decoration:none}
   <!-- ======================= CTA ======================= -->
   <section class="cta" id="access">
     <div class="shell cta__in">
-      <p class="eyebrow">Access</p>
+      <p class="eyebrow">Collaboration</p>
       <h2>Built by people who trade it.</h2>
       <p>
         BazarPeech is run by a small team of quantitative traders and engineers.
-        Leave your email and we’ll be in touch when a place opens.
+        Leave your email and we’ll reach out about working together.
       </p>
-      <button class="btn btn--solid" type="button" data-join>Join Waitlist</button>
+      <button class="btn btn--solid" type="button" data-join>Collaboration</button>
     </div>
   </section>
 
@@ -699,11 +726,11 @@ a{color:inherit; text-decoration:none}
           BazarPeech
         </a>
         <div class="foot__links">
-          <a href="#story">The system</a>
+          <a href="#story">The System</a>
           <a href="statistics/">Statistics</a>
-          <a href="about/">About us</a>
+          <a href="about/">About Us</a>
           <a href="#how">How it works</a>
-          <a href="#access">Contact</a>
+          <a href="#access">Collaboration</a>
         </div>
       </div>
       <hr class="rule">
@@ -729,9 +756,9 @@ a{color:inherit; text-decoration:none}
     <button class="modal__close" type="button" data-close aria-label="Close">&#10005;</button>
 
     <div id="joinForm">
-      <p class="eyebrow">Waitlist</p>
-      <h3 id="joinTitle">Join the waitlist.</h3>
-      <p class="modal__lead">Leave your email and we&rsquo;ll let you know when access opens.</p>
+      <p class="eyebrow">Collaboration</p>
+      <h3 id="joinTitle">Let&rsquo;s talk collaboration.</h3>
+      <p class="modal__lead">Leave your email and we&rsquo;ll reach out about working together.</p>
 
       <form id="joinFormEl" novalidate>
         <div class="field">
@@ -739,7 +766,7 @@ a{color:inherit; text-decoration:none}
           <input id="joinEmail" name="email" type="email" inputmode="email"
                  autocomplete="email" placeholder="you@example.com" required>
         </div>
-        <button class="btn btn--solid" type="submit" id="joinSubmit">Join Waitlist</button>
+        <button class="btn btn--solid" type="submit" id="joinSubmit">Send</button>
         <p class="modal__msg" id="joinMsg" role="status" aria-live="polite"></p>
       </form>
 
@@ -756,9 +783,9 @@ a{color:inherit; text-decoration:none}
           <path d="M20 6L9 17l-5-5"/>
         </svg>
       </div>
-      <h3>You&rsquo;re on the list.</h3>
+      <h3>Thanks &mdash; message sent.</h3>
       <p class="modal__lead" style="margin-block-end:0">
-        We&rsquo;ll email you when a place opens.
+        We&rsquo;ll email you back about working together.
       </p>
     </div>
   </div>
@@ -1566,25 +1593,12 @@ function drawHud(sc,fx){
   else if(fx.badge>0){  caption="TARGET REACHED"; hot=true; }
   else                  caption=sc.live>0.5?"ORDER LIVE":"READING NEWS";
 
-  ctx.save(); ctx.textBaseline="middle"; ctx.textAlign="left";
+  // The symbol/market label lives in HTML now (#hudSymbol), stacked above
+  // the beat cards and faded by scroll position — see loop() — so it isn't
+  // drawn here any more.
+
+  ctx.save(); ctx.textBaseline="middle"; ctx.textAlign="right";
   ctx.font=fs(13.5); if("letterSpacing" in ctx) ctx.letterSpacing="0.4px";
-  // dark glow behind the symbol block so candles passing under it never blur the text
-  const symW=ctx.measureText(CFG.symbol).width+24*ui, gx=hud.x+symW/2-12*ui, gy=26*ui;
-  ctx.save(); ctx.translate(gx,gy); ctx.scale(1,0.55);
-  const glow=ctx.createRadialGradient(0,0,0,0,0,symW*0.95);
-  glow.addColorStop(0,"rgba(0,0,0,0.92)"); glow.addColorStop(0.55,"rgba(0,0,0,0.7)"); glow.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(0,0,symW*0.95,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-  ctx.shadowColor="rgba(0,0,0,0.95)"; ctx.shadowBlur=8*ui;
-  ctx.fillStyle=rgba(T().text,0.95);
-  ctx.fillText(CFG.symbol,hud.x,19*ui);
-
-  ctx.font=fs(8.5); if("letterSpacing" in ctx) ctx.letterSpacing="2.4px";
-  ctx.fillStyle=rgba(T().dim,1);
-  ctx.fillText(CFG.market,hud.x+1,33*ui);
-  ctx.shadowBlur=0;
-
-  ctx.textAlign="right";
   ctx.fillStyle=hot?rgba(T().gold,0.95):rgba(T().dim,0.95);
   ctx.fillText(caption,hud.x+hud.w,19*ui);
   const cwid=ctx.measureText(caption).width;
@@ -1659,7 +1673,7 @@ function meter(el,frac,text){
 // fixed values, derived once from the data rather than typed into the markup
 qa('[data-bind="conf"]').forEach(el=>el.textContent=pct(CONF));
 setText(q('[data-bind="confx"]'),"×"+SIZE.confx.toFixed(2));
-setText(q('[data-bind="stop"]'),Math.round(SIZE.pips)+" pips");
+setText(q('[data-bind="stop"]'),Math.round(SIZE.pips)+" pipette");
 
 function updatePanels(sc){
   // §1 — memberships follow the candles on screen
@@ -1720,6 +1734,7 @@ setText(q('[data-bind="flow-net"]'),   "Net "+(NET>=0?"+":"")+NET.toFixed(2));
 /* ------------------------- SCROLL → PROGRESS ----------------------------- */
 const beats = [...document.querySelectorAll(".beat")];
 const nav   = document.getElementById("nav");
+const hudSymbol = document.getElementById("hudSymbol");
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const SECTIONS = beats.length;                      // 4
 
@@ -1795,6 +1810,8 @@ function loop(){
   draw(sc,fx);
   updatePanels(sc);
   setActiveBeat(p);
+  // on top of "01 — Trend" at rest, faded away by the time its card settles in
+  if(hudSymbol) hudSymbol.style.opacity=clamp(1-sc.p/0.55,0,1);
   nav.toggleAttribute("data-scrolled",scrollY>12);
 }
 
@@ -1826,7 +1843,7 @@ function closeModal(){
     formWrap.hidden=false; doneEl.hidden=true;
     formEl.reset(); msgEl.textContent="";
     emailEl.removeAttribute("aria-invalid");
-    submitEl.disabled=false; submitEl.textContent="Join Waitlist";
+    submitEl.disabled=false; submitEl.textContent="Send";
     if(opener) opener.focus();
   },260);
 }
@@ -1869,7 +1886,7 @@ formEl.addEventListener("submit",async(e)=>{
   }
   emailEl.removeAttribute("aria-invalid");
   msgEl.textContent="";
-  sending=true; submitEl.disabled=true; submitEl.textContent="Joining\u2026";
+  sending=true; submitEl.disabled=true; submitEl.textContent="Sending\u2026";
 
   try{
     const res=await fetch("/api/waitlist",{
@@ -1886,7 +1903,7 @@ formEl.addEventListener("submit",async(e)=>{
   }catch{
     msgEl.textContent="Couldn't reach the server. Please try again.";
   }finally{
-    sending=false; submitEl.disabled=false; submitEl.textContent="Join Waitlist";
+    sending=false; submitEl.disabled=false; submitEl.textContent="Send";
   }
 });
 

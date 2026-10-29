@@ -13,11 +13,12 @@ REMOTE="/var/www/${DOMAIN}/public"   # nginx root moved here on Sept 8
 
 # The homepage links to the Statistics page. That page runs on generated sample
 # data until statistics/results.js holds real results — never publish that.
-if grep -q 'statistics/' "$SRC"; then
+if [ -z "${ALLOW_SAMPLE_DATA:-}" ] && grep -q 'statistics/' "$SRC"; then
   if grep -qE '^window\.BZP_RESULTS *= *null' statistics/results.js; then
     echo "REFUSING TO DEPLOY: the Statistics page is still on sample data." >&2
     echo "  Put verified monthly returns in statistics/results.js, or remove the" >&2
     echo "  Statistics links from $SRC, then deploy again." >&2
+    echo "  (or set ALLOW_SAMPLE_DATA=1 to publish with the sample-data notice showing)" >&2
     exit 1
   fi
 fi

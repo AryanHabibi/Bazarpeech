@@ -91,8 +91,13 @@ button{font:inherit; color:inherit}
 .sec{padding-block:clamp(40px,7vh,72px); border-block-start:1px solid var(--hairline)}
 .sec__grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,2fr); gap:clamp(24px,5vw,72px)}
 .sec h2{font-size:var(--f-h2); margin-block-start:12px}
+.sec__sub{font-size:var(--f-lead); color:var(--dim); margin-block-start:14px; max-width:30ch}
 .story p{font-size:var(--f-lead); color:var(--dim); max-width:62ch}
 .story p+p{margin-block-start:1.1em}
+.story h3{font-family:Spectral,Georgia,serif; font-weight:500; font-size:1.2rem; color:var(--text); margin-block:30px 12px; letter-spacing:-.01em}
+.story h3:first-child{margin-block-start:0}
+.story h3 em{font-style:normal; color:var(--gold)}
+.story h4{font-family:Spectral,Georgia,serif; font-weight:500; font-size:1.02rem; color:var(--text); margin-block:22px 8px}
 .people{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px}
 .person{border:1px solid var(--hairline); border-radius:16px; padding:22px 22px 20px; transition:border-color .25s, background .25s}
 .person:hover{border-color:var(--hairline-strong); background:var(--bg-lift)}
@@ -128,18 +133,35 @@ button{font:inherit; color:inherit}
   <section class="head">
     <div class="shell">
       <p class="eyebrow">About us</p>
-      <h1>Two traders, <em>one rulebook</em>.</h1>
+      <h1>One Teacher, <em>Two Students</em>.</h1>
       <p class="lead">BazarPeech is a small, independent project built by two people who wanted gold trading to run on rules instead of nerves.</p>
     </div>
   </section>
 
   <section class="sec" id="journey">
     <div class="shell sec__grid">
-      <div><p class="eyebrow">01</p><h2>Our Journey</h2></div>
+      <div>
+        <p class="eyebrow">01</p>
+        <h2>Our Journey</h2>
+        <p class="sec__sub">From trading experience to systematic decisions.</p>
+      </div>
       <div class="story">
-        <p>It started with a spreadsheet. Aryan and Soroush were both trading gold on the side, and after a rough stretch they sat down to compare notes. The losing trades rarely came from bad analysis — they came from moving a stop at the last second, doubling down on a hunch, or closing a winner too early out of fear.</p>
-        <p>So they began writing their decisions down before taking them: where to enter, where to take profit, where to admit they were wrong, and how much to risk. The rules held up far better than their instincts did. The obvious next step was to let a program follow those rules, and then to let machine-learning models do the part humans are slowest at — reading trend, volatility and news across thousands of candles at once.</p>
-        <p>BazarPeech is what grew out of those late-night sessions: a system that fixes entry, target and stop before a position opens and then executes them without second-guessing. We are still testing, measuring and tightening it, and we would rather publish honest numbers late than impressive numbers early.</p>
+        <h3>Why — <em>The idea behind Midas</em></h3>
+        <p>Midas grew from Aryan's experience as a software engineer and gold (XAU/USD) day trader. After years of studying and applying technical analysis and macroeconomic principles, he wanted to translate his trading approach into an automated system — one that could monitor opportunities throughout market hours, manage risk consistently, and follow its rules without emotional interference.</p>
+
+        <h3>When — <em>Turning an idea into a project</em></h3>
+        <p>Development began approximately a year ago, when Aryan joined forces with his friend Souroosh, a software engineering student. Together, they began translating trading decisions into code. A collaboration contract with Guilan Techno Park followed, supporting their efforts to accelerate the project's development.</p>
+
+        <h3>How — <em>Building, testing, and evolving</em></h3>
+
+        <h4>Early Development — Pine Script Prototypes</h4>
+        <p>Our first algorithms were written in Pine Script on TradingView, using exponential moving averages (EMAs) to detect trends, simple trigger conditions to identify entries, and basic money-management rules. Each position was sized independently, without considering other open trades or the broader market situation. Some strategies produced very profitable backtests, but TradingView's historical candle limits restricted our ability to evaluate them over longer periods on five-minute charts.</p>
+
+        <h4>Current Development — Midas in Python</h4>
+        <p>To expand our research, we built Midas in Python and downloaded and cleaned raw market data, constructing candles across multiple timeframes covering approximately 20 years. Longer backtests revealed weaknesses that shorter tests had missed: strategies that performed strongly during one period could struggle under different market conditions. This finding changed our direction, leading us from static rules toward a dynamic framework built around fuzzy logic. Rather than treating market direction as a fixed classification, this approach expresses upward and downward tendencies through degrees of strength, aiming to better reflect how an experienced trader weighs evidence and makes decisions under uncertainty. Our money management evolved alongside it: the current framework considers the number of open positions and adjusts risk allocation according to market conditions, connecting individual trade sizing with overall exposure. We continue to refine the indicators, parameters, and weights behind the system, using machine-learning methods to support selected tuning tasks. Development also connects trend recognition, entry signals, and risk management with execution logic that defines position size, entry, stop loss, and take profit before placing an order.</p>
+
+        <h3>Where — <em>What we are working toward</em></h3>
+        <p>Our goal is to develop Midas into a thoroughly evaluated automated trading system that combines nuanced market assessment with disciplined risk management and execution. Our next steps include further testing across different market conditions and exploring a fundamentals component that could bring news and economic context into the decision process. BazarPeech provides a place to explain this work, share research and performance findings, and connect with organizations interested in collaboration. Development is ongoing, and we would rather publish reliable findings with clear context than impressive numbers before they have been properly tested.</p>
       </div>
     </div>
   </section>
